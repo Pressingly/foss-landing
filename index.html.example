@@ -496,12 +496,72 @@
   .app-card:nth-child(2) { animation: fadeUp 0.5s ease 0.45s both; }
   .app-card:nth-child(3) { animation: fadeUp 0.5s ease 0.50s both; }
   .app-card:nth-child(4) { animation: fadeUp 0.5s ease 0.55s both; }
+
+  /* ══════════════════════════════
+     AUTH BUTTON (hero top-right) + TOAST
+  ══════════════════════════════ */
+  .auth-btn {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border: 1px solid var(--hero-border);
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    min-width: 130px;
+    z-index: 2;
+  }
+  .auth-btn:hover:not(:disabled) { transform: translateY(-1px); }
+  .auth-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  .auth-btn-login {
+    background: var(--accent);
+    border-color: transparent;
+  }
+  .auth-btn-login:hover:not(:disabled) { background: #2f6fe0; }
+  .auth-btn-logout {
+    background: #dc2626;
+    border-color: transparent;
+  }
+  .auth-btn-logout:hover:not(:disabled) { background: #b91c1c; }
+  @media (max-width: 640px) {
+    .auth-btn { position: static; margin-top: 20px; display: inline-block; }
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translate(-50%, 20px);
+    background: var(--navy);
+    color: #fff;
+    border: 1px solid var(--hero-border);
+    border-left: 4px solid var(--accent);
+    padding: 14px 22px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 14px;
+    box-shadow: 0 10px 30px rgba(15,22,35,0.25);
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  .toast-visible { opacity: 1; transform: translate(-50%, 0); }
 </style>
 </head>
 <body>
 
 <!-- ─── HERO ─── -->
 <header class="hero">
+  <button type="button" id="auth-btn" class="auth-btn" disabled>Checking session...</button>
   <div class="hero-inner">
 
     <div class="org-logo">
@@ -719,6 +779,167 @@
     v0.7 <span>·</span> Last updated 2026-02-23
   </div>
 </footer>
+
+<script>
+(function () {
+    // Values substituted at `./platform.sh --setup` time.
+    window.FOSS_LOGOUT = {
+        portal: "{{PROTOCOL}}://{{SMB_NAME}}.{{DOMAIN}}",
+        oauthProxy: "{{PROTOCOL}}://{{SUBDOMAIN_PREFIX}}auth.{{DOMAIN}}/oauth2/sign_out",
+        oauthProxyStart: "/oauth2/start",
+        oauthProxyAuth: "/oauth2/auth",
+        cognitoLogout: "{{OIDC_LOGOUT_URI}}",
+        cognitoClientId: "{{OIDC_CLIENT_ID}}"
+    };
+
+    const cfg = window.FOSS_LOGOUT;
+
+    // --------------------------------------------------------------
+    // IdP-alive marker (localStorage)
+    //
+    // Tracks IdP SSO state client-side without cross-origin cookie
+    // reads (which break on Safari ITP / Firefox ETP / any third-
+    // party cookie restriction). Model:
+    //
+    //   • Apps soft-logout → clear oauth2-proxy cookie only; marker
+    //     is left untouched (app code doesn't know this key exists).
+    //   • Portal hard-logout → 3-layer chain + clearMarker(): both
+    //     proxy and IdP are cleared, marker cleared too.
+    //
+    // TTL guards against stale markers left over when the IdP
+    // itself ends the session (SSO TTL expiry, admin revoke).
+    // False positives self-correct on the next click of Logout:
+    // the IdP /logout is idempotent, the flow completes, the toast
+    // fires, the marker is cleared.
+    // --------------------------------------------------------------
+    const MARKER_KEY = "foss_cognito_alive_ts";
+    const MARKER_TTL_MS = 24 * 60 * 60 * 1000;
+
+    function setMarker() {
+        try { localStorage.setItem(MARKER_KEY, String(Date.now())); } catch (e) {}
+    }
+    function clearMarker() {
+        try { localStorage.removeItem(MARKER_KEY); } catch (e) {}
+    }
+    function markerFresh() {
+        try {
+            const raw = localStorage.getItem(MARKER_KEY);
+            if (!raw) return false;
+            const ts = parseInt(raw, 10);
+            if (!Number.isFinite(ts)) return false;
+            return (Date.now() - ts) < MARKER_TTL_MS;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function checkProxySession() {
+        try {
+            const res = await fetch(cfg.oauthProxyAuth, {
+                method: "GET",
+                credentials: "include",
+                cache: "no-store",
+                redirect: "manual"
+            });
+            return res.ok || res.status === 202;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function detectAuthState() {
+        if (await checkProxySession()) {
+            setMarker();
+            return true;
+        }
+        return markerFresh();
+    }
+
+    function setButtonState(loggedIn) {
+        const btn = document.getElementById("auth-btn");
+        if (!btn) return;
+        btn.disabled = false;
+        btn.classList.remove("auth-btn-login", "auth-btn-logout");
+        if (loggedIn) {
+            btn.textContent = "Log out of all apps";
+            btn.classList.add("auth-btn-logout");
+            btn.onclick = logoutAll;
+        } else {
+            btn.textContent = "Login";
+            btn.classList.add("auth-btn-login");
+            btn.onclick = loginAll;
+        }
+    }
+
+    function loginAll() {
+        const btn = document.getElementById("auth-btn");
+        if (btn) { btn.disabled = true; btn.textContent = "Redirecting..."; }
+        sessionStorage.setItem("foss_just_logged_in", "1");
+        window.location.href = cfg.oauthProxyStart + "?rd=" + encodeURIComponent(cfg.portal);
+    }
+
+    function logoutAll() {
+        const btn = document.getElementById("auth-btn");
+        if (btn) { btn.disabled = true; btn.textContent = "Logging out..."; }
+        sessionStorage.setItem("foss_just_logged_out", "1");
+        // Clear eagerly — if the 3-layer chain aborts mid-flight
+        // the portal correctly shows "Login" on return instead of
+        // claiming the IdP is still alive.
+        clearMarker();
+
+        let rd;
+        if (cfg.cognitoLogout && cfg.cognitoClientId) {
+            // 3-layer: oauth2-proxy clears cookie → IdP /logout
+            // clears SSO → portal. `rd=` single-encoded so oauth2-
+            // proxy decodes once and the IdP receives clean
+            // `?client_id=…&logout_uri=…`.
+            const cognito = cfg.cognitoLogout
+                + "?client_id=" + cfg.cognitoClientId
+                + "&logout_uri=" + encodeURIComponent(cfg.portal);
+            rd = cognito
+                .replace(/\?/g, "%3F")
+                .replace(/&/g, "%26")
+                .replace(/=/g, "%3D");
+        } else {
+            // 2-layer fallback — oauth2-proxy only, IdP SSO survives.
+            rd = encodeURIComponent(cfg.portal);
+        }
+        window.location.href = cfg.oauthProxy + "?rd=" + rd;
+    }
+
+    function showToast(message, variant) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        if (variant === "info") toast.style.borderLeftColor = "#16a34a";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        void toast.offsetHeight;
+        toast.classList.add("toast-visible");
+        setTimeout(() => {
+            toast.classList.remove("toast-visible");
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    function consumeAuthFlags(loggedIn) {
+        if (sessionStorage.getItem("foss_just_logged_out") === "1") {
+            sessionStorage.removeItem("foss_just_logged_out");
+            showToast("You have been logged out.", "logout");
+            return;
+        }
+        if (loggedIn && sessionStorage.getItem("foss_just_logged_in") === "1") {
+            sessionStorage.removeItem("foss_just_logged_in");
+            showToast("You are now logged in.", "info");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        const loggedIn = await detectAuthState();
+        setButtonState(loggedIn);
+        consumeAuthFlags(loggedIn);
+    });
+})();
+</script>
 
 </body>
 </html>
