@@ -784,7 +784,7 @@
 (function () {
     // Values substituted at `./platform.sh --setup` time.
     window.FOSS_LOGOUT = {
-        portal: "{{PROTOCOL}}://{{SMB_NAME}}.{{DOMAIN}}",
+        portal: "{{PROTOCOL}}://{{DOMAIN}}",
         oauthProxy: "{{PROTOCOL}}://{{SUBDOMAIN_PREFIX}}auth.{{DOMAIN}}/oauth2/sign_out",
         oauthProxyStart: "/oauth2/start",
         oauthProxyAuth: "/oauth2/auth",
