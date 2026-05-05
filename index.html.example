@@ -622,7 +622,7 @@
 
   <div class="cards-grid">
 
-    <a class="app-card card-outline" href="{{PROTOCOL}}://{{SMB_NAME}}-docs.{{DOMAIN}}">
+    <a class="app-card card-outline" href="{{PROTOCOL}}://docs.{{DOMAIN}}">
       <div class="card-icon-wrap">📝</div>
       <div class="card-category">Knowledge Wiki</div>
       <div class="card-name">Outline</div>
@@ -635,7 +635,7 @@
       </div>
     </a>
 
-    <a class="app-card card-plane" href="{{PROTOCOL}}://{{SMB_NAME}}-pm.{{DOMAIN}}">
+    <a class="app-card card-plane" href="{{PROTOCOL}}://pm.{{DOMAIN}}">
       <div class="card-icon-wrap">📋</div>
       <div class="card-category">Project Management</div>
       <div class="card-name">Plane</div>
@@ -648,7 +648,7 @@
       </div>
     </a>
 
-    <a class="app-card card-penpot" href="{{PROTOCOL}}://{{SMB_NAME}}-design.{{DOMAIN}}">
+    <a class="app-card card-penpot" href="{{PROTOCOL}}://design.{{DOMAIN}}">
       <div class="card-icon-wrap">🎨</div>
       <div class="card-category">Design Tool</div>
       <div class="card-name">Penpot</div>
@@ -661,7 +661,7 @@
       </div>
     </a>
 
-    <a class="app-card card-surfsense" href="{{PROTOCOL}}://{{SMB_NAME}}-research.{{DOMAIN}}">
+    <a class="app-card card-surfsense" href="{{PROTOCOL}}://research.{{DOMAIN}}">
       <div class="card-icon-wrap">🔍</div>
       <div class="card-category">AI Research</div>
       <div class="card-name">SurfSense</div>
@@ -693,30 +693,30 @@
     </summary>
     <div class="infra-body">
 
-      <a class="infra-item" href="{{PROTOCOL}}://{{SMB_NAME}}-traefik.{{DOMAIN}}">
+      <a class="infra-item" href="{{PROTOCOL}}://traefik.{{DOMAIN}}">
         <div class="infra-item-icon">🔀</div>
         <div class="infra-item-text">
           <span class="infra-item-name">Traefik Dashboard</span>
           <span class="infra-item-desc">Reverse proxy and HTTP routing management</span>
-          <span class="infra-item-url">{{SMB_NAME}}-traefik.{{DOMAIN}}</span>
+          <span class="infra-item-url">traefik.{{DOMAIN}}</span>
         </div>
       </a>
 
-      <a class="infra-item" href="{{PROTOCOL}}://{{SMB_NAME}}-s3.{{DOMAIN}}">
+      <a class="infra-item" href="{{PROTOCOL}}://s3.{{DOMAIN}}">
         <div class="infra-item-icon">💾</div>
         <div class="infra-item-text">
           <span class="infra-item-name">SeaweedFS Filer UI</span>
           <span class="infra-item-desc">File browser and object storage management interface</span>
-          <span class="infra-item-url">{{SMB_NAME}}-s3.{{DOMAIN}}</span>
+          <span class="infra-item-url">s3.{{DOMAIN}}</span>
         </div>
       </a>
 
-      <a class="infra-item" href="{{PROTOCOL}}://{{SMB_NAME}}-s3api.{{DOMAIN}}">
+      <a class="infra-item" href="{{PROTOCOL}}://s3api.{{DOMAIN}}">
         <div class="infra-item-icon">🔌</div>
         <div class="infra-item-text">
           <span class="infra-item-name">SeaweedFS S3 API</span>
           <span class="infra-item-desc">S3-compatible object storage API endpoint</span>
-          <span class="infra-item-url">{{SMB_NAME}}-s3api.{{DOMAIN}}</span>
+          <span class="infra-item-url">s3api.{{DOMAIN}}</span>
         </div>
       </a>
 
