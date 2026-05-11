@@ -585,6 +585,7 @@
       <span class="app-pill"><span class="app-pill-dot"></span>Plane</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Penpot</span>
       <span class="app-pill"><span class="app-pill-dot"></span>SurfSense</span>
+      <span class="app-pill"><span class="app-pill-dot"></span>Twenty</span>
     </div>
 
     <div class="auth-badge">
@@ -953,6 +954,15 @@
         const loggedIn = await detectAuthState();
         setButtonState(loggedIn);
         consumeAuthFlags(loggedIn);
+    });
+
+    // When the browser restores the page from bfcache (back button), DOMContentLoaded
+    // does not fire — re-evaluate auth state so the button never stays stuck on "Redirecting…".
+    window.addEventListener("pageshow", async (event) => {
+        if (event.persisted) {
+            const loggedIn = await detectAuthState();
+            setButtonState(loggedIn);
+        }
     });
 })();
 </script>
