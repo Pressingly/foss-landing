@@ -939,6 +939,20 @@
     }
 
     function consumeAuthFlags(loggedIn) {
+        // /mpass-callback redirects here with ?login_error=expired_flow when the
+        // callback can't succeed (no bridge cookie or stale Redis state) — typically
+        // a tab that lost a multi-tab race or a stale deep link. Surface as a toast
+        // and strip the param so a refresh doesn't re-show it.
+        const params = new URLSearchParams(window.location.search);
+        const loginError = params.get("login_error");
+        if (loginError === "expired_flow") {
+            showToast("Your login flow expired or was completed in another tab. Click Login to try again.", "info");
+            params.delete("login_error");
+            const newSearch = params.toString();
+            window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
+            return;
+        }
+
         if (sessionStorage.getItem("foss_just_logged_out") === "1") {
             sessionStorage.removeItem("foss_just_logged_out");
             showToast("You have been logged out.", "logout");
@@ -956,8 +970,7 @@
         consumeAuthFlags(loggedIn);
     });
 
-    // When the browser restores the page from bfcache (back button), DOMContentLoaded
-    // does not fire — re-evaluate auth state so the button never stays stuck on "Redirecting…".
+    // bfcache restore: DOMContentLoaded doesn't fire, so re-evaluate here too.
     window.addEventListener("pageshow", async (event) => {
         if (event.persisted) {
             const loggedIn = await detectAuthState();
