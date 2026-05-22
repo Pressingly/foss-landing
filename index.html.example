@@ -621,12 +621,12 @@
   <div class="section-heading">
     <span class="section-heading-label">Core Applications</span>
     <span class="section-heading-line"></span>
-    <span class="section-heading-count">4 apps</span>
+    <span class="section-heading-count">5 apps</span>
   </div>
 
   <div class="cards-grid">
 
-    <a class="app-card card-outline" href="{{PROTOCOL}}://docs.{{DOMAIN}}">
+    <a class="app-card card-outline" href="{{PROTOCOL}}://docs.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">📝</div>
       <div class="card-category">Knowledge Wiki</div>
       <div class="card-name">Outline</div>
@@ -639,7 +639,7 @@
       </div>
     </a>
 
-    <a class="app-card card-plane" href="{{PROTOCOL}}://pm.{{DOMAIN}}">
+    <a class="app-card card-plane" href="{{PROTOCOL}}://pm.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">📋</div>
       <div class="card-category">Project Management</div>
       <div class="card-name">Plane</div>
@@ -652,7 +652,7 @@
       </div>
     </a>
 
-    <a class="app-card card-penpot" href="{{PROTOCOL}}://design.{{DOMAIN}}">
+    <a class="app-card card-penpot" href="{{PROTOCOL}}://design.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">🎨</div>
       <div class="card-category">Design Tool</div>
       <div class="card-name">Penpot</div>
@@ -665,7 +665,7 @@
       </div>
     </a>
 
-    <a class="app-card card-surfsense" href="{{PROTOCOL}}://research.{{DOMAIN}}">
+    <a class="app-card card-surfsense" href="{{PROTOCOL}}://research.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">🔍</div>
       <div class="card-category">AI Research</div>
       <div class="card-name">SurfSense</div>
@@ -678,7 +678,7 @@
       </div>
     </a>
 
-    <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}">
+    <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">👥</div>
       <div class="card-category">CRM</div>
       <div class="card-name">Twenty</div>
@@ -710,7 +710,7 @@
     </summary>
     <div class="infra-body">
 
-      <a class="infra-item" href="{{PROTOCOL}}://traefik.{{DOMAIN}}">
+      <a class="infra-item" href="{{PROTOCOL}}://traefik.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
         <div class="infra-item-icon">🔀</div>
         <div class="infra-item-text">
           <span class="infra-item-name">Traefik Dashboard</span>
@@ -719,7 +719,7 @@
         </div>
       </a>
 
-      <a class="infra-item" href="{{PROTOCOL}}://s3.{{DOMAIN}}">
+      <a class="infra-item" href="{{PROTOCOL}}://s3.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
         <div class="infra-item-icon">💾</div>
         <div class="infra-item-text">
           <span class="infra-item-name">SeaweedFS Filer UI</span>
@@ -728,7 +728,7 @@
         </div>
       </a>
 
-      <a class="infra-item" href="{{PROTOCOL}}://s3api.{{DOMAIN}}">
+      <a class="infra-item" href="{{PROTOCOL}}://s3api.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
         <div class="infra-item-icon">🔌</div>
         <div class="infra-item-text">
           <span class="infra-item-name">SeaweedFS S3 API</span>
