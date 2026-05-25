@@ -303,100 +303,6 @@
   .app-card:hover .card-link svg { transform: translateX(3px); }
 
   /* ══════════════════════════════
-     INFRA SECTION
-  ══════════════════════════════ */
-  .infra-disclosure {
-    background: var(--surface);
-    border: 1px solid var(--border-light);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    margin-bottom: 48px;
-  }
-
-  .infra-summary {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 16px 20px;
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-  }
-
-  .infra-summary::-webkit-details-marker { display: none; }
-
-  .infra-summary-icon {
-    width: 26px; height: 26px;
-    border-radius: 7px;
-    background: #f1f3f7;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    font-size: 13px;
-  }
-
-  .infra-summary-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700;
-    color: var(--text-head);
-    flex: 1;
-  }
-
-  .infra-chevron {
-    width: 16px; height: 16px;
-    color: var(--text-meta);
-    transition: transform 0.2s;
-    flex-shrink: 0;
-  }
-
-  details[open] .infra-chevron { transform: rotate(180deg); }
-
-  .infra-body {
-    border-top: 1px solid var(--border-light);
-    padding: 8px 0;
-  }
-
-  .infra-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 14px 20px;
-    text-decoration: none;
-    transition: background 0.15s;
-    border-bottom: 1px solid var(--border-light);
-  }
-
-  .infra-item:last-child { border-bottom: none; }
-  .infra-item:hover { background: #f7f9fc; }
-
-  .infra-item-icon {
-    width: 32px; height: 32px;
-    border-radius: 8px;
-    background: #f1f3f7;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  .infra-item-text { display: flex; flex-direction: column; gap: 2px; }
-
-  .infra-item-name {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 700;
-    color: var(--text-head);
-  }
-
-  .infra-item-desc {
-    font-size: 12px; color: var(--text-body); line-height: 1.5;
-  }
-
-  .infra-item-url {
-    margin-top: 4px;
-    font-size: 11px; color: var(--accent);
-    font-weight: 500;
-  }
-
-  /* ══════════════════════════════
      QUICK START
   ══════════════════════════════ */
   .quickstart-card {
@@ -621,12 +527,12 @@
   <div class="section-heading">
     <span class="section-heading-label">Core Applications</span>
     <span class="section-heading-line"></span>
-    <span class="section-heading-count">4 apps</span>
+    <span class="section-heading-count">5 apps</span>
   </div>
 
   <div class="cards-grid">
 
-    <a class="app-card card-outline" href="{{PROTOCOL}}://docs.{{DOMAIN}}">
+    <a class="app-card card-outline" href="{{PROTOCOL}}://docs.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">📝</div>
       <div class="card-category">Knowledge Wiki</div>
       <div class="card-name">Outline</div>
@@ -639,7 +545,7 @@
       </div>
     </a>
 
-    <a class="app-card card-plane" href="{{PROTOCOL}}://pm.{{DOMAIN}}">
+    <a class="app-card card-plane" href="{{PROTOCOL}}://pm.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">📋</div>
       <div class="card-category">Project Management</div>
       <div class="card-name">Plane</div>
@@ -652,7 +558,7 @@
       </div>
     </a>
 
-    <a class="app-card card-penpot" href="{{PROTOCOL}}://design.{{DOMAIN}}">
+    <a class="app-card card-penpot" href="{{PROTOCOL}}://design.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">🎨</div>
       <div class="card-category">Design Tool</div>
       <div class="card-name">Penpot</div>
@@ -665,7 +571,7 @@
       </div>
     </a>
 
-    <a class="app-card card-surfsense" href="{{PROTOCOL}}://research.{{DOMAIN}}">
+    <a class="app-card card-surfsense" href="{{PROTOCOL}}://research.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">🔍</div>
       <div class="card-category">AI Research</div>
       <div class="card-name">SurfSense</div>
@@ -678,7 +584,7 @@
       </div>
     </a>
 
-    <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}">
+    <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">👥</div>
       <div class="card-category">CRM</div>
       <div class="card-name">Twenty</div>
@@ -693,53 +599,6 @@
 
   </div>
 
-  <!-- Infrastructure & Tools -->
-  <div class="section-heading">
-    <span class="section-heading-label">Infrastructure &amp; Tools</span>
-    <span class="section-heading-line"></span>
-    <span class="section-heading-count">Admin</span>
-  </div>
-
-  <details class="infra-disclosure" style="margin-bottom:48px;">
-    <summary class="infra-summary">
-      <div class="infra-summary-icon">🛠</div>
-      <span class="infra-summary-label">Administration &amp; Storage Tools</span>
-      <svg class="infra-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 9l6 6 6-6"/>
-      </svg>
-    </summary>
-    <div class="infra-body">
-
-      <a class="infra-item" href="{{PROTOCOL}}://traefik.{{DOMAIN}}">
-        <div class="infra-item-icon">🔀</div>
-        <div class="infra-item-text">
-          <span class="infra-item-name">Traefik Dashboard</span>
-          <span class="infra-item-desc">Reverse proxy and HTTP routing management</span>
-          <span class="infra-item-url">traefik.{{DOMAIN}}</span>
-        </div>
-      </a>
-
-      <a class="infra-item" href="{{PROTOCOL}}://s3.{{DOMAIN}}">
-        <div class="infra-item-icon">💾</div>
-        <div class="infra-item-text">
-          <span class="infra-item-name">SeaweedFS Filer UI</span>
-          <span class="infra-item-desc">File browser and object storage management interface</span>
-          <span class="infra-item-url">s3.{{DOMAIN}}</span>
-        </div>
-      </a>
-
-      <a class="infra-item" href="{{PROTOCOL}}://s3api.{{DOMAIN}}">
-        <div class="infra-item-icon">🔌</div>
-        <div class="infra-item-text">
-          <span class="infra-item-name">SeaweedFS S3 API</span>
-          <span class="infra-item-desc">S3-compatible object storage API endpoint</span>
-          <span class="infra-item-url">s3api.{{DOMAIN}}</span>
-        </div>
-      </a>
-
-    </div>
-  </details>
-
   <!-- Quick Start -->
   <div class="section-heading">
     <span class="section-heading-label">Quick Start</span>
@@ -753,12 +612,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         All applications authenticate via <span class="qs-bold">single sign-on (SSO)</span>
-      </li>
-      <li>
-        <div class="qs-bullet">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        First user to log in becomes the <span class="qs-bold">instance administrator</span>
       </li>
       <li>
         <div class="qs-bullet">
