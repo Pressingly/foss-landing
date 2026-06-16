@@ -970,10 +970,160 @@
         }
     }
 
+    // --------------------------------------------------------------
+    // Launchpad email collection state machine
+    // --------------------------------------------------------------
+    const CONSENT_VERSION = "v1.0";
+
+    async function fetchEmailState() {
+        try {
+            const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
+            if (!res.ok) return null;
+            return await res.json();
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function showCollectionModal() {
+        document.getElementById("email-modal").classList.add("visible");
+        document.getElementById("email-modal-form").style.display = "block";
+        document.getElementById("email-modal-pending").style.display = "none";
+        document.getElementById("email-banner").classList.remove("visible");
+    }
+
+    function showPendingModal(email) {
+        document.getElementById("email-modal").classList.add("visible");
+        document.getElementById("email-modal-form").style.display = "none";
+        document.getElementById("email-modal-pending").style.display = "block";
+        const pendingText = document.getElementById("pending-text");
+        pendingText.textContent = `We sent a verification link to ${email}. Click it to enable notifications.`;
+    }
+
+    function hideModal() {
+        document.getElementById("email-modal").classList.remove("visible");
+    }
+
+    function showBanner(stateLabel) {
+        const banner = document.getElementById("email-banner");
+        const text = document.getElementById("email-banner-text");
+        if (stateLabel === "pending_verification") {
+            text.textContent = "Verify your email — check your inbox.";
+            document.getElementById("email-banner-btn").textContent = "Open modal";
+        } else {
+            text.textContent = "Notifications are off until you provide an email.";
+            document.getElementById("email-banner-btn").textContent = "Provide email";
+        }
+        banner.classList.add("visible");
+    }
+
+    function hideBanner() {
+        document.getElementById("email-banner").classList.remove("visible");
+    }
+
+    function showError(message) {
+        const err = document.getElementById("email-error");
+        err.textContent = message;
+        err.style.display = "block";
+    }
+
+    function clearError() {
+        document.getElementById("email-error").style.display = "none";
+    }
+
+    async function submitEmail() {
+        clearError();
+        const email = document.getElementById("email-input").value.trim();
+        const name = document.getElementById("name-input").value.trim() || null;
+        const consent = document.getElementById("consent-check").checked;
+
+        if (!consent) { showError("Please agree to the consent statement."); return; }
+        if (!email || !email.includes("@")) { showError("Please enter a valid email."); return; }
+
+        const res = await fetch("/api/email", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email,
+                display_name: name,
+                consent: true,
+                consent_text_version: CONSENT_VERSION,
+            }),
+        });
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            showError(body.detail || "Submission failed. Try again.");
+            return;
+        }
+        showPendingModal(email);
+    }
+
+    async function resendVerification() {
+        const res = await fetch("/api/email/resend", { method: "POST", credentials: "include" });
+        if (!res.ok) {
+            alert("Couldn't resend. Please try again later.");
+            return;
+        }
+        const pendingText = document.getElementById("pending-text");
+        pendingText.textContent = "New verification link sent. Please check your inbox.";
+    }
+
+    async function dismissEmailModal() {
+        await fetch("/api/dismiss", { method: "POST", credentials: "include" });
+        hideModal();
+        showBanner("not_collected");
+    }
+
+    function consumeVerificationFlag() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("verified") === "1") {
+            params.delete("verified");
+            const newSearch = params.toString();
+            const cleanUrl = window.location.pathname + (newSearch ? "?" + newSearch : "");
+            window.history.replaceState(null, "", cleanUrl);
+            // Force a token refresh to pick up the email overlay
+            const rd = encodeURIComponent(cfg.portal + "/");
+            window.location.href = "/oauth2/sign_in?prompt=none&rd=" + rd;
+        }
+        if (params.get("verify_error") === "expired_or_invalid") {
+            showToast("Verification link expired. Please request a new one.", "info");
+            params.delete("verify_error");
+            const newSearch = params.toString();
+            window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
+        }
+    }
+
+    function attachLaunchpadHandlers() {
+        document.getElementById("email-submit-btn").addEventListener("click", submitEmail);
+        document.getElementById("email-dismiss-btn").addEventListener("click", dismissEmailModal);
+        document.getElementById("resend-btn").addEventListener("click", resendVerification);
+        document.getElementById("email-banner-btn").addEventListener("click", async () => {
+            const me = await fetchEmailState();
+            if (me?.state === "pending_verification") {
+                showPendingModal(me.email);
+            } else {
+                showCollectionModal();
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
         const loggedIn = await detectAuthState();
         setButtonState(loggedIn);
         consumeAuthFlags(loggedIn);
+        consumeVerificationFlag();
+        attachLaunchpadHandlers();
+
+        if (loggedIn) {
+            const me = await fetchEmailState();
+            if (me?.state === "not_collected") {
+                showCollectionModal();
+            } else if (me?.state === "pending_verification") {
+                showBanner("pending_verification");
+            }
+            // state === "verified" → do nothing
+        }
     });
 
     // bfcache restore: DOMContentLoaded doesn't fire, so re-evaluate here too.
