@@ -464,9 +464,162 @@
     z-index: 1000;
   }
   .toast-visible { opacity: 1; transform: translate(-50%, 0); }
+
+/* ══════════════════════════════
+   LAUNCHPAD EMAIL MODAL
+══════════════════════════════ */
+.email-modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 22, 35, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.email-modal-backdrop.visible {
+    display: flex;
+}
+.email-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 24px 48px rgba(15, 22, 35, 0.2);
+}
+.email-modal h2 {
+    font-family: 'Syne', sans-serif;
+    color: var(--navy);
+    margin-bottom: 12px;
+}
+.email-modal p {
+    color: var(--text-body);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+.email-modal label {
+    display: block;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--text-head);
+}
+.email-modal input[type="email"],
+.email-modal input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+}
+.email-modal .consent {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    align-items: flex-start;
+}
+.email-modal .consent input { margin-top: 4px; }
+.email-modal .consent label { margin: 0; font-weight: normal; color: var(--text-body); }
+.email-modal .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    justify-content: flex-end;
+}
+.email-modal button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+}
+.email-modal .submit-btn {
+    background: var(--accent);
+    color: white;
+}
+.email-modal .dismiss-btn {
+    background: transparent;
+    color: var(--text-meta);
+}
+.email-modal .pending-state {
+    text-align: center;
+    padding: 24px 0;
+}
+.email-modal .pending-state .icon { font-size: 48px; margin-bottom: 12px; }
+.email-modal .error { color: #b91c1c; font-size: 14px; margin-top: 8px; }
+
+/* ══════════════════════════════
+   LAUNCHPAD BANNER (persistent reminder)
+══════════════════════════════ */
+.email-banner {
+    display: none;
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 12px 24px;
+    margin: 16px 32px;
+    border-radius: 6px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.email-banner.visible { display: flex; }
+.email-banner .text { color: #78350f; font-size: 14px; flex: 1; }
+.email-banner .provide-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+}
 </style>
 </head>
 <body>
+
+<!-- Email collection modal — controlled by JS -->
+<div class="email-modal-backdrop" id="email-modal">
+  <div class="email-modal">
+    <div id="email-modal-form">
+      <h2>Enable notifications</h2>
+      <p>To receive invites, mentions, and other notifications from your FOSS apps, please share an email address. We'll send you a confirmation link.</p>
+      <label for="email-input">Email</label>
+      <input type="email" id="email-input" placeholder="you@example.com" required>
+      <label for="name-input">Display name (optional)</label>
+      <input type="text" id="name-input" placeholder="Jane Doe" maxlength="100">
+      <div class="consent">
+        <input type="checkbox" id="consent-check">
+        <label for="consent-check" id="consent-label">
+          I agree to receive transactional emails from FOSS (Moneta) related to my use of these apps.
+        </label>
+      </div>
+      <div class="error" id="email-error" style="display:none;"></div>
+      <div class="actions">
+        <button class="dismiss-btn" id="email-dismiss-btn">Skip for now</button>
+        <button class="submit-btn" id="email-submit-btn">Send verification</button>
+      </div>
+    </div>
+    <div id="email-modal-pending" style="display:none;">
+      <div class="pending-state">
+        <div class="icon">📧</div>
+        <h2>Check your inbox</h2>
+        <p id="pending-text">We sent a verification link. Click it to enable notifications.</p>
+        <button class="dismiss-btn" id="resend-btn">Didn't get it? Resend</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Persistent banner for users who skipped or are pending -->
+<div class="email-banner" id="email-banner">
+  <span class="text" id="email-banner-text">Notifications are off until you provide an email.</span>
+  <button class="provide-btn" id="email-banner-btn">Provide email</button>
+</div>
 
 <!-- ─── HERO ─── -->
 <header class="hero">
