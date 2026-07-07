@@ -805,6 +805,13 @@
             window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
             return;
         }
+        if (loginError === "access_denied") {
+            showToast("You are not authorized to access this workspace.", "error");
+            params.delete("login_error");
+            const newSearch = params.toString();
+            window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
+            return;
+        }
 
         if (sessionStorage.getItem("foss_just_logged_out") === "1") {
             sessionStorage.removeItem("foss_just_logged_out");
