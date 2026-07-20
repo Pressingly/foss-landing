@@ -464,6 +464,47 @@
     z-index: 1000;
   }
   .toast-visible { opacity: 1; transform: translate(-50%, 0); }
+
+  .auth-error-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #991b1b;
+    color: #fff;
+    padding: 16px 24px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.5;
+    text-align: center;
+    z-index: 2000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .auth-error-banner.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .auth-error-banner .banner-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .auth-error-banner .banner-dismiss {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.8;
+  }
+  .auth-error-banner .banner-dismiss:hover { opacity: 1; }
 </style>
 </head>
 <body>
@@ -777,6 +818,22 @@
         window.location.href = cfg.oauthProxy + "?rd=" + rd;
     }
 
+    function showErrorBanner(title, message) {
+        var banner = document.createElement("div");
+        banner.className = "auth-error-banner";
+        banner.innerHTML =
+            '<button class="banner-dismiss" aria-label="Dismiss">&times;</button>' +
+            '<div class="banner-title">' + title + '</div>' +
+            '<div>' + message + '</div>';
+        banner.querySelector(".banner-dismiss").addEventListener("click", function () {
+            banner.classList.remove("visible");
+            setTimeout(function () { banner.remove(); }, 300);
+        });
+        document.body.appendChild(banner);
+        void banner.offsetHeight;
+        banner.classList.add("visible");
+    }
+
     function showToast(message, variant) {
         const toast = document.createElement("div");
         toast.className = "toast";
@@ -806,8 +863,19 @@
             return;
         }
         if (loginError === "access_denied") {
-            showToast("You are not authorized to access this workspace.", "error");
+            const reason = params.get("reason") || "";
+            let title = "Access Denied";
+            let msg;
+            if (reason === "not_corporate") {
+                msg = "Your account is a personal account. Only corporate accounts can access this workspace. Please contact your organization administrator to get a corporate account.";
+            } else if (reason === "wrong_organization") {
+                msg = "Your account belongs to a different organization and does not have access to this workspace. Please verify you are using the correct account, or contact your administrator.";
+            } else {
+                msg = "You are not authorized to access this workspace. Please contact your administrator for access.";
+            }
+            showErrorBanner(title, msg);
             params.delete("login_error");
+            params.delete("reason");
             const newSearch = params.toString();
             window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
             return;
