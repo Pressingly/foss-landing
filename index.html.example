@@ -250,7 +250,6 @@
   .card-outline   { --card-stripe: #63b3ed; }
   .card-plane     { --card-stripe: #68d391; }
   .card-penpot    { --card-stripe: #f6ad55; }
-  .card-surfsense { --card-stripe: #b794f6; }
   .card-twenty    { --card-stripe: #4f46e5; }
 
   .card-icon-wrap {
@@ -265,7 +264,6 @@
   .card-outline   .card-icon-wrap { background: rgba(99,179,237,0.1);  }
   .card-plane     .card-icon-wrap { background: rgba(104,211,145,0.1); }
   .card-penpot    .card-icon-wrap { background: rgba(246,173,85,0.1);  }
-  .card-surfsense .card-icon-wrap { background: rgba(183,148,246,0.1); }
   .card-twenty    .card-icon-wrap { background: rgba(79,70,229,0.1);   }
 
   .card-category {
@@ -276,7 +274,6 @@
   .card-outline   .card-category { color: #3a9fd5; }
   .card-plane     .card-category { color: #38a169; }
   .card-penpot    .card-category { color: #c97c2a; }
-  .card-surfsense .card-category { color: #805ad5; }
   .card-twenty    .card-category { color: #4338ca; }
 
   .card-name {
@@ -531,7 +528,6 @@
       <span class="app-pill"><span class="app-pill-dot"></span>Outline</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Plane</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Penpot</span>
-      <span class="app-pill"><span class="app-pill-dot"></span>SurfSense</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Twenty</span>
     </div>
 
@@ -612,18 +608,9 @@
       </div>
     </a>
 
-    <a class="app-card card-surfsense" href="{{PROTOCOL}}://research.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
-      <div class="card-icon-wrap">🔍</div>
-      <div class="card-category">AI Research</div>
-      <div class="card-name">SurfSense</div>
-      <div class="card-desc">Connect your knowledge sources to powerful AI — find answers across all your docs</div>
-      <div class="card-link">
-        Open
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 12h14M12 5l7 7-7 7"/>
-        </svg>
-      </div>
-    </a>
+    <!-- SurfSense card removed: the app is disabled (see the SurfSense block in
+         docker-compose.yml). Its .card-surfsense rules were dropped from the
+         <style> block too, so re-enabling means restoring both. -->
 
     <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">👥</div>
@@ -665,12 +652,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         Object storage (SeaweedFS) is configured automatically during <span class="qs-bold">platform setup</span>
-      </li>
-      <li>
-        <div class="qs-bullet">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        For AI research, open <span class="qs-bold">SurfSense</span> and connect your knowledge sources
       </li>
     </ul>
   </div>
