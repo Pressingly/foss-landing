@@ -608,10 +608,6 @@
       </div>
     </a>
 
-    <!-- SurfSense card removed: the app is disabled (see the SurfSense block in
-         docker-compose.yml). Its .card-surfsense rules were dropped from the
-         <style> block too, so re-enabling means restoring both. -->
-
     <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">👥</div>
       <div class="card-category">CRM</div>
