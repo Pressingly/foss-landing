@@ -626,6 +626,9 @@
 <!-- Email collection modal — controlled by JS -->
 <div class="email-modal-backdrop" id="email-modal">
   <div class="email-modal">
+    <p class="collect-reason" id="collect-reason" style="display:none;">
+      You'll need a verified email address before you can open the FOSS apps.
+    </p>
     <div id="email-modal-form">
       <h2>Enable notifications</h2>
       <p>To receive invites, mentions, and other notifications from your FOSS apps, please share an email address. We'll send you a confirmation link.</p>
@@ -641,7 +644,6 @@
       </div>
       <div class="error" id="email-error" style="display:none;"></div>
       <div class="actions">
-        <button class="dismiss-btn" id="email-dismiss-btn">Skip for now</button>
         <button class="submit-btn" id="email-submit-btn">Send verification</button>
       </div>
     </div>
@@ -1144,10 +1146,13 @@
         pendingText.textContent = "New verification link sent. Please check your inbox.";
     }
 
-    async function dismissEmailModal() {
-        await fetch("/api/dismiss", { method: "POST", credentials: "include" });
-        hideModal();
-        showBanner("not_collected");
+    function consumeCollectFlag() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("collect") !== "1") return false;
+        params.delete("collect");
+        const newSearch = params.toString();
+        window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
+        return true;
     }
 
     function consumeVerificationFlag() {
@@ -1171,7 +1176,6 @@
 
     function attachLaunchpadHandlers() {
         document.getElementById("email-submit-btn").addEventListener("click", submitEmail);
-        document.getElementById("email-dismiss-btn").addEventListener("click", dismissEmailModal);
         document.getElementById("resend-btn").addEventListener("click", resendVerification);
         document.getElementById("email-banner-btn").addEventListener("click", async () => {
             const me = await fetchEmailState();
@@ -1188,6 +1192,7 @@
         setButtonState(loggedIn);
         consumeAuthFlags(loggedIn);
         consumeVerificationFlag();
+        const redirectedToCollect = consumeCollectFlag();
         attachLaunchpadHandlers();
 
         if (loggedIn) {
@@ -1195,9 +1200,14 @@
             if (me?.state === "not_collected") {
                 showCollectionModal();
             } else if (me?.state === "pending_verification") {
-                showBanner("pending_verification");
+                // A user the gate redirected here needs the modal, not just the banner.
+                if (redirectedToCollect) showPendingModal(me.email);
+                else showBanner("pending_verification");
             }
             // state === "verified" → do nothing
+            if (redirectedToCollect) {
+                document.getElementById("collect-reason").style.display = "block";
+            }
         }
     });
 
