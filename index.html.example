@@ -250,8 +250,8 @@
   .card-outline   { --card-stripe: #63b3ed; }
   .card-plane     { --card-stripe: #68d391; }
   .card-penpot    { --card-stripe: #f6ad55; }
-  .card-surfsense { --card-stripe: #b794f6; }
   .card-twenty    { --card-stripe: #4f46e5; }
+  .card-zammad    { --card-stripe: #f56565; }
 
   .card-icon-wrap {
     width: 38px; height: 38px;
@@ -265,8 +265,8 @@
   .card-outline   .card-icon-wrap { background: rgba(99,179,237,0.1);  }
   .card-plane     .card-icon-wrap { background: rgba(104,211,145,0.1); }
   .card-penpot    .card-icon-wrap { background: rgba(246,173,85,0.1);  }
-  .card-surfsense .card-icon-wrap { background: rgba(183,148,246,0.1); }
   .card-twenty    .card-icon-wrap { background: rgba(79,70,229,0.1);   }
+  .card-zammad    .card-icon-wrap { background: rgba(245,101,101,0.1); }
 
   .card-category {
     font-size: 10.5px; font-weight: 600;
@@ -276,8 +276,8 @@
   .card-outline   .card-category { color: #3a9fd5; }
   .card-plane     .card-category { color: #38a169; }
   .card-penpot    .card-category { color: #c97c2a; }
-  .card-surfsense .card-category { color: #805ad5; }
   .card-twenty    .card-category { color: #4338ca; }
+  .card-zammad    .card-category { color: #c53030; }
 
   .card-name {
     font-family: 'Syne', sans-serif;
@@ -405,6 +405,8 @@
   .app-card:nth-child(2) { animation: fadeUp 0.5s ease 0.45s both; }
   .app-card:nth-child(3) { animation: fadeUp 0.5s ease 0.50s both; }
   .app-card:nth-child(4) { animation: fadeUp 0.5s ease 0.55s both; }
+  .app-card:nth-child(5) { animation: fadeUp 0.5s ease 0.60s both; }
+  .app-card:nth-child(6) { animation: fadeUp 0.5s ease 0.65s both; }
 
   /* ══════════════════════════════
      AUTH BUTTON (hero top-right) + TOAST
@@ -684,8 +686,8 @@
       <span class="app-pill"><span class="app-pill-dot"></span>Outline</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Plane</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Penpot</span>
-      <span class="app-pill"><span class="app-pill-dot"></span>SurfSense</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Twenty</span>
+      <span class="app-pill"><span class="app-pill-dot"></span>Zammad</span>
     </div>
 
     <div class="auth-badge">
@@ -721,7 +723,7 @@
   <div class="section-heading">
     <span class="section-heading-label">Core Applications</span>
     <span class="section-heading-line"></span>
-    <span class="section-heading-count">5 apps</span>
+    <span class="section-heading-count">6 apps</span>
   </div>
 
   <div class="cards-grid">
@@ -765,11 +767,11 @@
       </div>
     </a>
 
-    <a class="app-card card-surfsense" href="{{PROTOCOL}}://research.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
-      <div class="card-icon-wrap">🔍</div>
-      <div class="card-category">AI Research</div>
-      <div class="card-name">SurfSense</div>
-      <div class="card-desc">Connect your knowledge sources to powerful AI — find answers across all your docs</div>
+    <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon-wrap">👥</div>
+      <div class="card-category">CRM</div>
+      <div class="card-name">Twenty</div>
+      <div class="card-desc">Track customers, deals, and pipelines — your contacts and revenue in one view</div>
       <div class="card-link">
         Open
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -778,11 +780,11 @@
       </div>
     </a>
 
-    <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
-      <div class="card-icon-wrap">👥</div>
-      <div class="card-category">CRM</div>
-      <div class="card-name">Twenty</div>
-      <div class="card-desc">Track customers, deals, and pipelines — your contacts and revenue in one view</div>
+    <a class="app-card card-zammad" href="{{PROTOCOL}}://support.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon-wrap">🎧</div>
+      <div class="card-category">Support / Helpdesk</div>
+      <div class="card-name">Zammad</div>
+      <div class="card-desc">Helpdesk and ticketing system for customer support and internal requests</div>
       <div class="card-link">
         Open
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -818,12 +820,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         Object storage (SeaweedFS) is configured automatically during <span class="qs-bold">platform setup</span>
-      </li>
-      <li>
-        <div class="qs-bullet">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        For AI research, open <span class="qs-bold">SurfSense</span> and connect your knowledge sources
       </li>
     </ul>
   </div>
