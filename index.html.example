@@ -1044,7 +1044,7 @@
     // --------------------------------------------------------------
     // Launchpad email collection state machine
     // --------------------------------------------------------------
-    const CONSENT_VERSION = "v1.0";
+    const CONSENT_VERSION = "v1.1";
 
     async function fetchEmailState() {
         try {
