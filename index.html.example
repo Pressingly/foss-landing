@@ -1157,8 +1157,15 @@
             const rd = encodeURIComponent(cfg.portal + "/");
             window.location.href = "/oauth2/sign_in?prompt=none&rd=" + rd;
         }
-        if (params.get("verify_error") === "expired_or_invalid") {
-            showToast("Verification link expired. Please request a new one.", "info");
+        const verifyError = params.get("verify_error");
+        if (verifyError) {
+            // email_taken: another account verified this address first. There is
+            // nothing the user can do alone, so the message points at the one
+            // route that resolves it rather than inviting a retry.
+            const message = verifyError === "email_taken"
+                ? "That email address is already verified on another account. Contact your administrator."
+                : "Verification link expired. Please request a new one.";
+            showToast(message, "info");
             params.delete("verify_error");
             const newSearch = params.toString();
             window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
