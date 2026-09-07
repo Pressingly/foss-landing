@@ -250,8 +250,8 @@
   .card-outline   { --card-stripe: #63b3ed; }
   .card-plane     { --card-stripe: #68d391; }
   .card-penpot    { --card-stripe: #f6ad55; }
-  .card-surfsense { --card-stripe: #b794f6; }
   .card-twenty    { --card-stripe: #4f46e5; }
+  .card-zammad    { --card-stripe: #f56565; }
 
   .card-icon-wrap {
     width: 38px; height: 38px;
@@ -265,8 +265,8 @@
   .card-outline   .card-icon-wrap { background: rgba(99,179,237,0.1);  }
   .card-plane     .card-icon-wrap { background: rgba(104,211,145,0.1); }
   .card-penpot    .card-icon-wrap { background: rgba(246,173,85,0.1);  }
-  .card-surfsense .card-icon-wrap { background: rgba(183,148,246,0.1); }
   .card-twenty    .card-icon-wrap { background: rgba(79,70,229,0.1);   }
+  .card-zammad    .card-icon-wrap { background: rgba(245,101,101,0.1); }
 
   .card-category {
     font-size: 10.5px; font-weight: 600;
@@ -276,8 +276,8 @@
   .card-outline   .card-category { color: #3a9fd5; }
   .card-plane     .card-category { color: #38a169; }
   .card-penpot    .card-category { color: #c97c2a; }
-  .card-surfsense .card-category { color: #805ad5; }
   .card-twenty    .card-category { color: #4338ca; }
+  .card-zammad    .card-category { color: #c53030; }
 
   .card-name {
     font-family: 'Syne', sans-serif;
@@ -405,6 +405,8 @@
   .app-card:nth-child(2) { animation: fadeUp 0.5s ease 0.45s both; }
   .app-card:nth-child(3) { animation: fadeUp 0.5s ease 0.50s both; }
   .app-card:nth-child(4) { animation: fadeUp 0.5s ease 0.55s both; }
+  .app-card:nth-child(5) { animation: fadeUp 0.5s ease 0.60s both; }
+  .app-card:nth-child(6) { animation: fadeUp 0.5s ease 0.65s both; }
 
   /* ══════════════════════════════
      AUTH BUTTON (hero top-right) + TOAST
@@ -551,6 +553,10 @@
 }
 .email-modal .pending-state .icon { font-size: 48px; margin-bottom: 12px; }
 .email-modal .error { color: #b91c1c; font-size: 14px; margin-top: 8px; }
+.email-modal .terminal-state p { color: var(--text-body); }
+/* A disabled submit must LOOK disabled: a live-looking button under a message
+   that says the request cannot succeed reads as a glitch, and users re-click. */
+.email-modal button:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ══════════════════════════════
    LAUNCHPAD BANNER (persistent reminder)
@@ -630,17 +636,26 @@
       You'll need a verified email address before you can open the FOSS apps.
     </p>
     <div id="email-modal-form">
-      <h2>Enable notifications</h2>
-      <p>To receive invites, mentions, and other notifications from your FOSS apps, please share an email address. We'll send you a confirmation link.</p>
-      <label for="email-input">Email</label>
-      <input type="email" id="email-input" placeholder="you@example.com" required>
-      <label for="name-input">Display name (optional)</label>
-      <input type="text" id="name-input" placeholder="Jane Doe" maxlength="100">
-      <div class="consent">
-        <input type="checkbox" id="consent-check">
-        <label for="consent-check" id="consent-label">
-          I agree to receive transactional emails from FOSS (Moneta) related to my use of these apps.
-        </label>
+      <!-- The input fields are wrapped so a non-retryable error (a 409) can
+           replace them wholesale with a terminal message, leaving the .actions
+           row — and whatever dismissal affordance it holds — untouched. -->
+      <div id="email-modal-fields">
+        <h2>Enable notifications</h2>
+        <p>To receive invites, mentions, and other notifications from your FOSS apps, please share an email address. We'll send you a confirmation link.</p>
+        <label for="email-input">Email</label>
+        <input type="email" id="email-input" placeholder="you@example.com" required>
+        <label for="name-input">Display name (optional)</label>
+        <input type="text" id="name-input" placeholder="Jane Doe" maxlength="100">
+        <div class="consent">
+          <input type="checkbox" id="consent-check">
+          <label for="consent-check" id="consent-label">
+            I agree to receive transactional emails from FOSS (Moneta) related to my use of these apps.
+          </label>
+        </div>
+      </div>
+      <div class="terminal-state" id="email-modal-terminal" style="display:none;">
+        <h2>Can't continue here</h2>
+        <p id="email-terminal-text"></p>
       </div>
       <div class="error" id="email-error" style="display:none;"></div>
       <div class="actions">
@@ -649,8 +664,8 @@
     </div>
     <div id="email-modal-pending" style="display:none;">
       <div class="pending-state">
-        <div class="icon">📧</div>
-        <h2>Check your inbox</h2>
+        <div class="icon" id="pending-icon">📧</div>
+        <h2 id="pending-title">Check your inbox</h2>
         <p id="pending-text">We sent a verification link. Click it to enable notifications.</p>
         <button class="dismiss-btn" id="resend-btn">Didn't get it? Resend</button>
       </div>
@@ -686,8 +701,8 @@
       <span class="app-pill"><span class="app-pill-dot"></span>Outline</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Plane</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Penpot</span>
-      <span class="app-pill"><span class="app-pill-dot"></span>SurfSense</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Twenty</span>
+      <span class="app-pill"><span class="app-pill-dot"></span>Zammad</span>
     </div>
 
     <div class="auth-badge">
@@ -723,7 +738,7 @@
   <div class="section-heading">
     <span class="section-heading-label">Core Applications</span>
     <span class="section-heading-line"></span>
-    <span class="section-heading-count">5 apps</span>
+    <span class="section-heading-count">6 apps</span>
   </div>
 
   <div class="cards-grid">
@@ -767,11 +782,11 @@
       </div>
     </a>
 
-    <a class="app-card card-surfsense" href="{{PROTOCOL}}://research.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
-      <div class="card-icon-wrap">🔍</div>
-      <div class="card-category">AI Research</div>
-      <div class="card-name">SurfSense</div>
-      <div class="card-desc">Connect your knowledge sources to powerful AI — find answers across all your docs</div>
+    <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon-wrap">👥</div>
+      <div class="card-category">CRM</div>
+      <div class="card-name">Twenty</div>
+      <div class="card-desc">Track customers, deals, and pipelines — your contacts and revenue in one view</div>
       <div class="card-link">
         Open
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -780,11 +795,11 @@
       </div>
     </a>
 
-    <a class="app-card card-twenty" href="{{PROTOCOL}}://twenty.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
-      <div class="card-icon-wrap">👥</div>
-      <div class="card-category">CRM</div>
-      <div class="card-name">Twenty</div>
-      <div class="card-desc">Track customers, deals, and pipelines — your contacts and revenue in one view</div>
+    <a class="app-card card-zammad" href="{{PROTOCOL}}://support.{{DOMAIN}}" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon-wrap">🎧</div>
+      <div class="card-category">Support / Helpdesk</div>
+      <div class="card-name">Zammad</div>
+      <div class="card-desc">Helpdesk and ticketing system for customer support and internal requests</div>
       <div class="card-link">
         Open
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -820,12 +835,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         Object storage (SeaweedFS) is configured automatically during <span class="qs-bold">platform setup</span>
-      </li>
-      <li>
-        <div class="qs-bullet">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        For AI research, open <span class="qs-bold">SurfSense</span> and connect your knowledge sources
       </li>
     </ul>
   </div>
@@ -1050,7 +1059,7 @@
     // --------------------------------------------------------------
     // Launchpad email collection state machine
     // --------------------------------------------------------------
-    const CONSENT_VERSION = "v1.0";
+    const CONSENT_VERSION = "v1.1";
 
     async function fetchEmailState() {
         try {
@@ -1108,6 +1117,55 @@
         document.getElementById("email-error").style.display = "none";
     }
 
+    // FastAPI puts two different things in `detail`: a plain string for an
+    // HTTPException we raised deliberately, and an ARRAY of {loc, msg, type}
+    // objects for a request-validation (422) failure. The old code passed it
+    // straight to textContent, so a 422 rendered as the literal text
+    // "[object Object]". That is reachable without trying: "a@b" passes the
+    // client-side includes("@") check and fails EmailStr on the server.
+    //
+    // The array is deliberately NOT rendered. Its contents are a schema dump
+    // (loc/type/ctx) that tells a user nothing they can act on; we key off the
+    // offending field instead, so someone whose *name* was rejected is not told
+    // their email is wrong.
+    function errorText(body, fallback) {
+        const detail = body && body.detail;
+        if (typeof detail === "string" && detail) { return detail; }
+        if (Array.isArray(detail) && detail.length) {
+            const fields = detail.map(function (e) {
+                return Array.isArray(e.loc) ? String(e.loc[e.loc.length - 1]) : "";
+            });
+            if (fields.indexOf("display_name") !== -1) {
+                return "Display name can't contain line breaks, and must be 100 characters or fewer.";
+            }
+            if (fields.indexOf("email") !== -1) {
+                return "Please enter a valid email address.";
+            }
+            return "Some of the details you entered aren't valid. Please check and try again.";
+        }
+        return fallback;
+    }
+
+    // A 409 means the server state cannot be changed by anything the user does
+    // here -- their account already has a verified address, and only an admin
+    // can move it. Leaving the form live invites a retry that is guaranteed to
+    // fail again, so replace the fields with the message and disable submit.
+    //
+    // Deliberately NO close button. PR #160 makes this modal mandatory and
+    // removes dismissal, so a close affordance added here would be deleted
+    // again; a terminal message inside the modal survives that change. The
+    // existing "Skip for now" button is left exactly as it is -- neither added
+    // to nor removed -- because it belongs to the pre-#160 behaviour.
+    function showTerminal(message) {
+        clearError();
+        document.getElementById("email-modal-fields").style.display = "none";
+        document.getElementById("email-terminal-text").textContent = message;
+        document.getElementById("email-modal-terminal").style.display = "block";
+        const submit = document.getElementById("email-submit-btn");
+        submit.disabled = true;
+        submit.setAttribute("aria-disabled", "true");
+    }
+
     async function submitEmail() {
         clearError();
         const email = document.getElementById("email-input").value.trim();
@@ -1130,7 +1188,12 @@
         });
         if (!res.ok) {
             const body = await res.json().catch(() => ({}));
-            showError(body.detail || "Submission failed. Try again.");
+            const message = errorText(body, "Submission failed. Try again.");
+            if (res.status === 409) {
+                showTerminal(message);
+            } else {
+                showError(message);
+            }
             return;
         }
         showPendingModal(email);
@@ -1138,11 +1201,28 @@
 
     async function resendVerification() {
         const res = await fetch("/api/email/resend", { method: "POST", credentials: "include" });
+        const pendingText = document.getElementById("pending-text");
         if (!res.ok) {
-            alert("Couldn't resend. Please try again later.");
+            const body = await res.json().catch(() => ({}));
+            const message = errorText(body, "Couldn't resend. Please try again later.");
+            // The other non-retryable 409 (PR C changed this from a 400):
+            // "Already verified". Retrying can only produce it again, so state
+            // it in place and take the button out of service rather than
+            // alert()ing a message the user is invited to dismiss and re-try.
+            if (res.status === 409) {
+                // Swap the heading and icon too: "Already verified" under
+                // "Check your inbox" and an envelope reads as a contradiction.
+                document.getElementById("pending-title").textContent = "Email already verified";
+                document.getElementById("pending-icon").textContent = "\u2713";
+                pendingText.textContent = message;
+                const resendBtn = document.getElementById("resend-btn");
+                resendBtn.disabled = true;
+                resendBtn.setAttribute("aria-disabled", "true");
+                return;
+            }
+            alert(message);
             return;
         }
-        const pendingText = document.getElementById("pending-text");
         pendingText.textContent = "New verification link sent. Please check your inbox.";
     }
 
@@ -1162,12 +1242,30 @@
             const newSearch = params.toString();
             const cleanUrl = window.location.pathname + (newSearch ? "?" + newSearch : "");
             window.history.replaceState(null, "", cleanUrl);
-            // Force a token refresh to pick up the email overlay
+            // Re-run the sign-in flow so the session cookie is reminted and the
+            // apps see the newly verified address in the identity claims.
+            //
+            // This is a FULL re-authentication, not a silent refresh. It used to
+            // carry `prompt=none`, which did nothing: `prompt` is an OIDC
+            // *authorize* parameter, and oauth2-proxy's /oauth2/sign_in is not an
+            // authorize endpoint -- it takes its prompt from the static --prompt
+            // flag and ignores unknown query parameters. The redirect looks
+            // instant only because the IdP session is still live and answers
+            // without re-prompting; if it were not, the user would see a login
+            // screen. Building a real silent refresh means forcing a re-redeem
+            // against mpass-auth-proxy's /token and is a separate change.
             const rd = encodeURIComponent(cfg.portal + "/");
-            window.location.href = "/oauth2/sign_in?prompt=none&rd=" + rd;
+            window.location.href = "/oauth2/sign_in?rd=" + rd;
         }
-        if (params.get("verify_error") === "expired_or_invalid") {
-            showToast("Verification link expired. Please request a new one.", "info");
+        const verifyError = params.get("verify_error");
+        if (verifyError) {
+            // email_taken: another account verified this address first. There is
+            // nothing the user can do alone, so the message points at the one
+            // route that resolves it rather than inviting a retry.
+            const message = verifyError === "email_taken"
+                ? "That email address is already verified on another account. Contact your administrator."
+                : "Verification link expired. Please request a new one.";
+            showToast(message, "info");
             params.delete("verify_error");
             const newSearch = params.toString();
             window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
