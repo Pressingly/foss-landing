@@ -467,6 +467,124 @@
   }
   .toast-visible { opacity: 1; transform: translate(-50%, 0); }
 
+/* ══════════════════════════════
+   LAUNCHPAD EMAIL MODAL
+══════════════════════════════ */
+.email-modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 22, 35, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.email-modal-backdrop.visible {
+    display: flex;
+}
+.email-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 24px 48px rgba(15, 22, 35, 0.2);
+}
+.email-modal h2 {
+    font-family: 'Syne', sans-serif;
+    color: var(--navy);
+    margin-bottom: 12px;
+}
+.email-modal p {
+    color: var(--text-body);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+.email-modal label {
+    display: block;
+    margin-top: 16px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--text-head);
+}
+.email-modal input[type="email"],
+.email-modal input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+}
+.email-modal .consent {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    align-items: flex-start;
+}
+.email-modal .consent input { margin-top: 4px; }
+.email-modal .consent label { margin: 0; font-weight: normal; color: var(--text-body); }
+.email-modal .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    justify-content: flex-end;
+}
+.email-modal button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+}
+.email-modal .submit-btn {
+    background: var(--accent);
+    color: white;
+}
+.email-modal .dismiss-btn {
+    background: transparent;
+    color: var(--text-meta);
+}
+.email-modal .pending-state {
+    text-align: center;
+    padding: 24px 0;
+}
+.email-modal .pending-state .icon { font-size: 48px; margin-bottom: 12px; }
+.email-modal .error { color: #b91c1c; font-size: 14px; margin-top: 8px; }
+.email-modal .terminal-state p { color: var(--text-body); }
+/* A disabled submit must LOOK disabled: a live-looking button under a message
+   that says the request cannot succeed reads as a glitch, and users re-click. */
+.email-modal button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ══════════════════════════════
+   LAUNCHPAD BANNER (persistent reminder)
+══════════════════════════════ */
+.email-banner {
+    display: none;
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 12px 24px;
+    margin: 16px 32px;
+    border-radius: 6px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.email-banner.visible { display: flex; }
+.email-banner .text { color: #78350f; font-size: 14px; flex: 1; }
+.email-banner .provide-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+}
+
   .auth-error-banner {
     position: fixed;
     top: 0;
@@ -510,6 +628,54 @@
 </style>
 </head>
 <body>
+
+<!-- Email collection modal — controlled by JS -->
+<div class="email-modal-backdrop" id="email-modal">
+  <div class="email-modal">
+    <div id="email-modal-form">
+      <!-- The input fields are wrapped so a non-retryable error (a 409) can
+           replace them wholesale with a terminal message, leaving the .actions
+           row — and whatever dismissal affordance it holds — untouched. -->
+      <div id="email-modal-fields">
+        <h2>Enable notifications</h2>
+        <p>To receive invites, mentions, and other notifications from your FOSS apps, please share an email address. We'll send you a confirmation link.</p>
+        <label for="email-input">Email</label>
+        <input type="email" id="email-input" placeholder="you@example.com" required>
+        <label for="name-input">Display name (optional)</label>
+        <input type="text" id="name-input" placeholder="Jane Doe" maxlength="100">
+        <div class="consent">
+          <input type="checkbox" id="consent-check">
+          <label for="consent-check" id="consent-label">
+            I agree to receive transactional emails from FOSS (Moneta) related to my use of these apps.
+          </label>
+        </div>
+      </div>
+      <div class="terminal-state" id="email-modal-terminal" style="display:none;">
+        <h2>Can't continue here</h2>
+        <p id="email-terminal-text"></p>
+      </div>
+      <div class="error" id="email-error" style="display:none;"></div>
+      <div class="actions">
+        <button class="dismiss-btn" id="email-dismiss-btn">Skip for now</button>
+        <button class="submit-btn" id="email-submit-btn">Send verification</button>
+      </div>
+    </div>
+    <div id="email-modal-pending" style="display:none;">
+      <div class="pending-state">
+        <div class="icon" id="pending-icon">📧</div>
+        <h2 id="pending-title">Check your inbox</h2>
+        <p id="pending-text">We sent a verification link. Click it to enable notifications.</p>
+        <button class="dismiss-btn" id="resend-btn">Didn't get it? Resend</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Persistent banner for users who skipped or are pending -->
+<div class="email-banner" id="email-banner">
+  <span class="text" id="email-banner-text">Notifications are off until you provide an email.</span>
+  <button class="provide-btn" id="email-banner-btn">Provide email</button>
+</div>
 
 <!-- ─── HERO ─── -->
 <header class="hero">
@@ -888,10 +1054,249 @@
         }
     }
 
+    // --------------------------------------------------------------
+    // Launchpad email collection state machine
+    // --------------------------------------------------------------
+    const CONSENT_VERSION = "v1.1";
+
+    async function fetchEmailState() {
+        try {
+            const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
+            if (!res.ok) return null;
+            return await res.json();
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function showCollectionModal() {
+        document.getElementById("email-modal").classList.add("visible");
+        document.getElementById("email-modal-form").style.display = "block";
+        document.getElementById("email-modal-pending").style.display = "none";
+        document.getElementById("email-banner").classList.remove("visible");
+    }
+
+    function showPendingModal(email) {
+        document.getElementById("email-modal").classList.add("visible");
+        document.getElementById("email-modal-form").style.display = "none";
+        document.getElementById("email-modal-pending").style.display = "block";
+        const pendingText = document.getElementById("pending-text");
+        pendingText.textContent = `We sent a verification link to ${email}. Click it to enable notifications.`;
+    }
+
+    function hideModal() {
+        document.getElementById("email-modal").classList.remove("visible");
+    }
+
+    function showBanner(stateLabel) {
+        const banner = document.getElementById("email-banner");
+        const text = document.getElementById("email-banner-text");
+        if (stateLabel === "pending_verification") {
+            text.textContent = "Verify your email — check your inbox.";
+            document.getElementById("email-banner-btn").textContent = "Open modal";
+        } else {
+            text.textContent = "Notifications are off until you provide an email.";
+            document.getElementById("email-banner-btn").textContent = "Provide email";
+        }
+        banner.classList.add("visible");
+    }
+
+    function hideBanner() {
+        document.getElementById("email-banner").classList.remove("visible");
+    }
+
+    function showError(message) {
+        const err = document.getElementById("email-error");
+        err.textContent = message;
+        err.style.display = "block";
+    }
+
+    function clearError() {
+        document.getElementById("email-error").style.display = "none";
+    }
+
+    // FastAPI puts two different things in `detail`: a plain string for an
+    // HTTPException we raised deliberately, and an ARRAY of {loc, msg, type}
+    // objects for a request-validation (422) failure. The old code passed it
+    // straight to textContent, so a 422 rendered as the literal text
+    // "[object Object]". That is reachable without trying: "a@b" passes the
+    // client-side includes("@") check and fails EmailStr on the server.
+    //
+    // The array is deliberately NOT rendered. Its contents are a schema dump
+    // (loc/type/ctx) that tells a user nothing they can act on; we key off the
+    // offending field instead, so someone whose *name* was rejected is not told
+    // their email is wrong.
+    function errorText(body, fallback) {
+        const detail = body && body.detail;
+        if (typeof detail === "string" && detail) { return detail; }
+        if (Array.isArray(detail) && detail.length) {
+            const fields = detail.map(function (e) {
+                return Array.isArray(e.loc) ? String(e.loc[e.loc.length - 1]) : "";
+            });
+            if (fields.indexOf("display_name") !== -1) {
+                return "Display name can't contain line breaks, and must be 100 characters or fewer.";
+            }
+            if (fields.indexOf("email") !== -1) {
+                return "Please enter a valid email address.";
+            }
+            return "Some of the details you entered aren't valid. Please check and try again.";
+        }
+        return fallback;
+    }
+
+    // A 409 means the server state cannot be changed by anything the user does
+    // here -- their account already has a verified address, and only an admin
+    // can move it. Leaving the form live invites a retry that is guaranteed to
+    // fail again, so replace the fields with the message and disable submit.
+    //
+    // Deliberately NO close button. PR #160 makes this modal mandatory and
+    // removes dismissal, so a close affordance added here would be deleted
+    // again; a terminal message inside the modal survives that change. The
+    // existing "Skip for now" button is left exactly as it is -- neither added
+    // to nor removed -- because it belongs to the pre-#160 behaviour.
+    function showTerminal(message) {
+        clearError();
+        document.getElementById("email-modal-fields").style.display = "none";
+        document.getElementById("email-terminal-text").textContent = message;
+        document.getElementById("email-modal-terminal").style.display = "block";
+        const submit = document.getElementById("email-submit-btn");
+        submit.disabled = true;
+        submit.setAttribute("aria-disabled", "true");
+    }
+
+    async function submitEmail() {
+        clearError();
+        const email = document.getElementById("email-input").value.trim();
+        const name = document.getElementById("name-input").value.trim() || null;
+        const consent = document.getElementById("consent-check").checked;
+
+        if (!consent) { showError("Please agree to the consent statement."); return; }
+        if (!email || !email.includes("@")) { showError("Please enter a valid email."); return; }
+
+        const res = await fetch("/api/email", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                email,
+                display_name: name,
+                consent: true,
+                consent_text_version: CONSENT_VERSION,
+            }),
+        });
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            const message = errorText(body, "Submission failed. Try again.");
+            if (res.status === 409) {
+                showTerminal(message);
+            } else {
+                showError(message);
+            }
+            return;
+        }
+        showPendingModal(email);
+    }
+
+    async function resendVerification() {
+        const res = await fetch("/api/email/resend", { method: "POST", credentials: "include" });
+        const pendingText = document.getElementById("pending-text");
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            const message = errorText(body, "Couldn't resend. Please try again later.");
+            // The other non-retryable 409 (PR C changed this from a 400):
+            // "Already verified". Retrying can only produce it again, so state
+            // it in place and take the button out of service rather than
+            // alert()ing a message the user is invited to dismiss and re-try.
+            if (res.status === 409) {
+                // Swap the heading and icon too: "Already verified" under
+                // "Check your inbox" and an envelope reads as a contradiction.
+                document.getElementById("pending-title").textContent = "Email already verified";
+                document.getElementById("pending-icon").textContent = "\u2713";
+                pendingText.textContent = message;
+                const resendBtn = document.getElementById("resend-btn");
+                resendBtn.disabled = true;
+                resendBtn.setAttribute("aria-disabled", "true");
+                return;
+            }
+            alert(message);
+            return;
+        }
+        pendingText.textContent = "New verification link sent. Please check your inbox.";
+    }
+
+    async function dismissEmailModal() {
+        await fetch("/api/dismiss", { method: "POST", credentials: "include" });
+        hideModal();
+        showBanner("not_collected");
+    }
+
+    function consumeVerificationFlag() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("verified") === "1") {
+            params.delete("verified");
+            const newSearch = params.toString();
+            const cleanUrl = window.location.pathname + (newSearch ? "?" + newSearch : "");
+            window.history.replaceState(null, "", cleanUrl);
+            // Re-run the sign-in flow so the session cookie is reminted and the
+            // apps see the newly verified address in the identity claims.
+            //
+            // This is a FULL re-authentication, not a silent refresh. It used to
+            // carry `prompt=none`, which did nothing: `prompt` is an OIDC
+            // *authorize* parameter, and oauth2-proxy's /oauth2/sign_in is not an
+            // authorize endpoint -- it takes its prompt from the static --prompt
+            // flag and ignores unknown query parameters. The redirect looks
+            // instant only because the IdP session is still live and answers
+            // without re-prompting; if it were not, the user would see a login
+            // screen. Building a real silent refresh means forcing a re-redeem
+            // against mpass-auth-proxy's /token and is a separate change.
+            const rd = encodeURIComponent(cfg.portal + "/");
+            window.location.href = "/oauth2/sign_in?rd=" + rd;
+        }
+        const verifyError = params.get("verify_error");
+        if (verifyError) {
+            // email_taken: another account verified this address first. There is
+            // nothing the user can do alone, so the message points at the one
+            // route that resolves it rather than inviting a retry.
+            const message = verifyError === "email_taken"
+                ? "That email address is already verified on another account. Contact your administrator."
+                : "Verification link expired. Please request a new one.";
+            showToast(message, "info");
+            params.delete("verify_error");
+            const newSearch = params.toString();
+            window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
+        }
+    }
+
+    function attachLaunchpadHandlers() {
+        document.getElementById("email-submit-btn").addEventListener("click", submitEmail);
+        document.getElementById("email-dismiss-btn").addEventListener("click", dismissEmailModal);
+        document.getElementById("resend-btn").addEventListener("click", resendVerification);
+        document.getElementById("email-banner-btn").addEventListener("click", async () => {
+            const me = await fetchEmailState();
+            if (me?.state === "pending_verification") {
+                showPendingModal(me.email);
+            } else {
+                showCollectionModal();
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
         const loggedIn = await detectAuthState();
         setButtonState(loggedIn);
         consumeAuthFlags(loggedIn);
+        consumeVerificationFlag();
+        attachLaunchpadHandlers();
+
+        if (loggedIn) {
+            const me = await fetchEmailState();
+            if (me?.state === "not_collected") {
+                showCollectionModal();
+            } else if (me?.state === "pending_verification") {
+                showBanner("pending_verification");
+            }
+            // state === "verified" → do nothing
+        }
     });
 
     // bfcache restore: DOMContentLoaded doesn't fire, so re-evaluate here too.
