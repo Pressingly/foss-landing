@@ -491,6 +491,14 @@
     width: 90%;
     box-shadow: 0 24px 48px rgba(15, 22, 35, 0.2);
 }
+.collect-reason {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-left: 3px solid #d97706;
+    background: #fffbeb;
+    color: #78350f;
+    line-height: 1.5;
+}
 .email-modal h2 {
     font-family: 'Syne', sans-serif;
     color: var(--navy);
@@ -1086,10 +1094,11 @@
         pendingText.textContent = `We sent a verification link to ${email}. Click it to enable notifications.`;
     }
 
-    function hideModal() {
-        document.getElementById("email-modal").classList.remove("visible");
-    }
-
+    // No hideModal / Escape / backdrop-close on purpose. Email is mandatory
+    // (ADR-0018): the edge gate is what enforces it, and a UI escape here would
+    // only produce a user who dismisses the modal and then bounces off the gate
+    // on their next click with no explanation. An operator escape hatch for a
+    // user who cannot receive mail is FOSS-13, not a close button.
     function showBanner(stateLabel) {
         const banner = document.getElementById("email-banner");
         const text = document.getElementById("email-banner-text");
