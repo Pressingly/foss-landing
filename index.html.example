@@ -491,6 +491,14 @@
     width: 90%;
     box-shadow: 0 24px 48px rgba(15, 22, 35, 0.2);
 }
+.collect-reason {
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border-left: 3px solid #d97706;
+    background: #fffbeb;
+    color: #78350f;
+    line-height: 1.5;
+}
 .email-modal h2 {
     font-family: 'Syne', sans-serif;
     color: var(--navy);
@@ -632,6 +640,9 @@
 <!-- Email collection modal — controlled by JS -->
 <div class="email-modal-backdrop" id="email-modal">
   <div class="email-modal">
+    <p class="collect-reason" id="collect-reason" style="display:none;">
+      You'll need a verified email address before you can open the FOSS apps.
+    </p>
     <div id="email-modal-form">
       <!-- The input fields are wrapped so a non-retryable error (a 409) can
            replace them wholesale with a terminal message, leaving the .actions
@@ -656,7 +667,6 @@
       </div>
       <div class="error" id="email-error" style="display:none;"></div>
       <div class="actions">
-        <button class="dismiss-btn" id="email-dismiss-btn">Skip for now</button>
         <button class="submit-btn" id="email-submit-btn">Send verification</button>
       </div>
     </div>
@@ -1084,10 +1094,11 @@
         pendingText.textContent = `We sent a verification link to ${email}. Click it to enable notifications.`;
     }
 
-    function hideModal() {
-        document.getElementById("email-modal").classList.remove("visible");
-    }
-
+    // No hideModal / Escape / backdrop-close on purpose. Email is mandatory
+    // (ADR-0018): the edge gate is what enforces it, and a UI escape here would
+    // only produce a user who dismisses the modal and then bounces off the gate
+    // on their next click with no explanation. An operator escape hatch for a
+    // user who cannot receive mail is FOSS-13, not a close button.
     function showBanner(stateLabel) {
         const banner = document.getElementById("email-banner");
         const text = document.getElementById("email-banner-text");
@@ -1224,10 +1235,13 @@
         pendingText.textContent = "New verification link sent. Please check your inbox.";
     }
 
-    async function dismissEmailModal() {
-        await fetch("/api/dismiss", { method: "POST", credentials: "include" });
-        hideModal();
-        showBanner("not_collected");
+    function consumeCollectFlag() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("collect") !== "1") return false;
+        params.delete("collect");
+        const newSearch = params.toString();
+        window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
+        return true;
     }
 
     function consumeVerificationFlag() {
@@ -1269,7 +1283,6 @@
 
     function attachLaunchpadHandlers() {
         document.getElementById("email-submit-btn").addEventListener("click", submitEmail);
-        document.getElementById("email-dismiss-btn").addEventListener("click", dismissEmailModal);
         document.getElementById("resend-btn").addEventListener("click", resendVerification);
         document.getElementById("email-banner-btn").addEventListener("click", async () => {
             const me = await fetchEmailState();
@@ -1286,6 +1299,7 @@
         setButtonState(loggedIn);
         consumeAuthFlags(loggedIn);
         consumeVerificationFlag();
+        const redirectedToCollect = consumeCollectFlag();
         attachLaunchpadHandlers();
 
         if (loggedIn) {
@@ -1293,9 +1307,14 @@
             if (me?.state === "not_collected") {
                 showCollectionModal();
             } else if (me?.state === "pending_verification") {
-                showBanner("pending_verification");
+                // A user the gate redirected here needs the modal, not just the banner.
+                if (redirectedToCollect) showPendingModal(me.email);
+                else showBanner("pending_verification");
             }
             // state === "verified" → do nothing
+            if (redirectedToCollect) {
+                document.getElementById("collect-reason").style.display = "block";
+            }
         }
     });
 
