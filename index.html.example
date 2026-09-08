@@ -676,6 +676,26 @@
         <h2 id="pending-title">Check your inbox</h2>
         <p id="pending-text">We sent a verification link. Click it to enable notifications.</p>
         <button class="dismiss-btn" id="resend-btn">Didn't get it? Resend</button>
+        <!-- Self-service correction (FOSS-13 part B). The commonest cause of a
+             verification email never arriving is a typo in the address, and
+             without this the user is stuck with it until an operator runs the
+             override. Deliberately in THIS panel only: the relinking panel
+             below has no resubmit control on purpose, because that user has
+             already confirmed an address and resubmitting only lands them back
+             where they are. -->
+        <button class="dismiss-btn" id="change-email-btn">Not your address? Change it</button>
+      </div>
+    </div>
+    <!-- Relinking: the user has confirmed their address and we are moving
+         their existing app accounts onto it. Deliberately NO resubmit and NO
+         resend control. Without this panel a held user is redirected here,
+         sees the collection form, resubmits, gets a fresh link, clicks it and
+         lands back in the same state -- a silent loop with no explanation. -->
+    <div id="email-modal-relinking" style="display:none;">
+      <div class="pending-state">
+        <div class="icon">⏳</div>
+        <h2>Setting up your account</h2>
+        <p id="relinking-text">Your email is confirmed. We're moving your existing app accounts over to it so nothing gets left behind. This is a one-time step — you'll be able to open the apps as soon as it's done. If it hasn't cleared by tomorrow, contact your administrator.</p>
       </div>
     </div>
   </div>
@@ -1079,19 +1099,43 @@
         }
     }
 
-    function showCollectionModal() {
+    // `prefillEmail` is passed only by the "change it" control, so the user
+    // corrects a typo instead of retyping the whole address -- the mistake is
+    // usually one character, and retyping from scratch is how you get a second
+    // one.
+    function showCollectionModal(prefillEmail) {
         document.getElementById("email-modal").classList.add("visible");
         document.getElementById("email-modal-form").style.display = "block";
         document.getElementById("email-modal-pending").style.display = "none";
+        document.getElementById("email-modal-relinking").style.display = "none";
         document.getElementById("email-banner").classList.remove("visible");
+        if (prefillEmail) {
+            document.getElementById("email-input").value = prefillEmail;
+        }
     }
 
     function showPendingModal(email) {
         document.getElementById("email-modal").classList.add("visible");
         document.getElementById("email-modal-form").style.display = "none";
+        document.getElementById("email-modal-relinking").style.display = "none";
         document.getElementById("email-modal-pending").style.display = "block";
         const pendingText = document.getElementById("pending-text");
         pendingText.textContent = `We sent a verification link to ${email}. Click it to enable notifications.`;
+    }
+
+    // The gate holds this user (GateAction.RELINKING), so the modal must not
+    // offer a way back into the collection form: resubmitting would only issue
+    // another verification link and return them here.
+    function showRelinkingModal(email) {
+        document.getElementById("email-modal").classList.add("visible");
+        document.getElementById("email-modal-form").style.display = "none";
+        document.getElementById("email-modal-pending").style.display = "none";
+        document.getElementById("email-modal-relinking").style.display = "block";
+        document.getElementById("email-banner").classList.remove("visible");
+        if (email) {
+            document.getElementById("relinking-text").textContent =
+                `${email} is confirmed. We're moving your existing app accounts over to it so nothing gets left behind. This is a one-time step — you'll be able to open the apps as soon as it's done. If it hasn't cleared by tomorrow, contact your administrator.`;
+        }
     }
 
     // No hideModal / Escape / backdrop-close on purpose. Email is mandatory
@@ -1244,6 +1288,25 @@
         return true;
     }
 
+    // The gate's 302 for a held user carries ?relinking=1, the way COLLECT
+    // carries ?collect=1. /api/verify redirects here with it too.
+    function consumeRelinkingFlag() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("relinking") !== "1") return false;
+        params.delete("relinking");
+        const newSearch = params.toString();
+        window.history.replaceState(null, "", window.location.pathname + (newSearch ? "?" + newSearch : ""));
+        return true;
+    }
+
+    // NOTE: after the relink split, nothing in the platform emits ?verified=1
+    // any more -- /api/verify now redirects with ?relinking=1, because clicking
+    // the link no longer changes the user's identity claim. This handler is
+    // kept, not deleted: the re-mint it performs is exactly what IS needed once
+    // a relink completes, and the completing caller (part 2's runner, or the
+    // ops override) is expected to send the user back here with ?verified=1.
+    // Until one of them does, a relinked user picks up their new claim on their
+    // next ordinary sign-in instead.
     function consumeVerificationFlag() {
         const params = new URLSearchParams(window.location.search);
         if (params.get("verified") === "1") {
@@ -1284,9 +1347,21 @@
     function attachLaunchpadHandlers() {
         document.getElementById("email-submit-btn").addEventListener("click", submitEmail);
         document.getElementById("resend-btn").addEventListener("click", resendVerification);
+        // Straight back to the collection form. POST /api/email already handles
+        // a resubmission with a different address: it replaces the pending one,
+        // issues a fresh token (which kills the old link), leaves nothing
+        // claimed on the old address, and charges the submit bucket -- so
+        // correcting a typo is not a way around the rate limit. No new endpoint
+        // is needed, and none was added.
+        document.getElementById("change-email-btn").addEventListener("click", async () => {
+            const me = await fetchEmailState();
+            showCollectionModal(me?.email);
+        });
         document.getElementById("email-banner-btn").addEventListener("click", async () => {
             const me = await fetchEmailState();
-            if (me?.state === "pending_verification") {
+            if (me?.state === "relinking") {
+                showRelinkingModal(me.email);
+            } else if (me?.state === "pending_verification") {
                 showPendingModal(me.email);
             } else {
                 showCollectionModal();
@@ -1299,12 +1374,25 @@
         setButtonState(loggedIn);
         consumeAuthFlags(loggedIn);
         consumeVerificationFlag();
+        // Consumed for its side effect: the flag is stripped from the URL so a
+        // reload does not re-assert a state the server may have moved on from.
+        // The panel itself is decided by /api/me below, never by the flag.
+        consumeRelinkingFlag();
         const redirectedToCollect = consumeCollectFlag();
         attachLaunchpadHandlers();
 
         if (loggedIn) {
             const me = await fetchEmailState();
-            if (me?.state === "not_collected") {
+            // Keyed off /api/me, never off ?relinking=1: a held user who opens
+            // the portal directly must get the explanation too, and a flag left
+            // in a bookmarked URL must not fake a state the server disagrees
+            // with. The panel is unconditional -- unlike pending_verification,
+            // which only opens the modal when the gate sent the user here --
+            // because a relinking user cannot act on it, so a banner they can
+            // ignore would just let them keep bouncing off the gate.
+            if (me?.state === "relinking") {
+                showRelinkingModal(me.email);
+            } else if (me?.state === "not_collected") {
                 showCollectionModal();
             } else if (me?.state === "pending_verification") {
                 // A user the gate redirected here needs the modal, not just the banner.
@@ -1312,7 +1400,7 @@
                 else showBanner("pending_verification");
             }
             // state === "verified" → do nothing
-            if (redirectedToCollect) {
+            if (redirectedToCollect && me?.state !== "relinking") {
                 document.getElementById("collect-reason").style.display = "block";
             }
         }
