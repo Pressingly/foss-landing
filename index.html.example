@@ -696,6 +696,11 @@
         <div class="icon">⏳</div>
         <h2>Setting up your account</h2>
         <p id="relinking-text">Your email is confirmed. We're moving your existing app accounts over to it so nothing gets left behind. This is a one-time step — you'll be able to open the apps as soon as it's done. If it hasn't cleared by tomorrow, contact your administrator.</p>
+        <!-- Populated only after RELINK_POLL_MAX_ATTEMPTS is exhausted (see
+             showRelinkTimeout). Not a progress bar -- there is genuinely no
+             ETA under manual relink -- just an honest "we've stopped checking"
+             notice so the message doesn't go stale on an overnight tab. -->
+        <p id="relinking-status" style="display:none;"></p>
       </div>
     </div>
   </div>
@@ -1136,7 +1141,86 @@
             document.getElementById("relinking-text").textContent =
                 `${email} is confirmed. We're moving your existing app accounts over to it so nothing gets left behind. This is a one-time step — you'll be able to open the apps as soon as it's done. If it hasn't cleared by tomorrow, contact your administrator.`;
         }
+        startRelinkPolling();
     }
+
+    // --------------------------------------------------------------
+    // Relinking modal: poll instead of making the user discover completion
+    // by refreshing or clicking an app.
+    //
+    // Deviates from the ticket's stated acceptance criterion ("copy should
+    // differ by mode"). Under LAUNCHPAD_RELINK_RUNNER=manual there is no ETA
+    // -- a human operator clears the hold -- so a progress bar would just be
+    // a lie. Polling /api/me and auto-advancing the user the moment the
+    // state flips is the honest version of "give me a sense of progress."
+    //
+    // Interval: /api/me is not rate-limited, but 15s is plenty responsive
+    // for an operation that resolves on human timescales (minutes at the
+    // fastest) and keeps load low if many held users leave the tab open.
+    // Bounded window: stops after RELINK_POLL_MAX_ATTEMPTS (~15 min of
+    // visible-tab polling) so a tab left open overnight doesn't poll
+    // forever; the panel then falls back to the existing "contact your
+    // administrator" guidance instead of continuing silently.
+    const RELINK_POLL_INTERVAL_MS = 15000;
+    const RELINK_POLL_MAX_ATTEMPTS = 60;
+    let relinkPollHandle = null;
+    let relinkPollAttempts = 0;
+
+    function stopRelinkPolling() {
+        if (relinkPollHandle) {
+            clearInterval(relinkPollHandle);
+            relinkPollHandle = null;
+        }
+    }
+
+    function showRelinkTimeout() {
+        stopRelinkPolling();
+        const status = document.getElementById("relinking-status");
+        if (status) {
+            status.textContent = "Still not done. Check back later, or contact your administrator.";
+            status.style.display = "block";
+        }
+    }
+
+    async function relinkPollTick() {
+        relinkPollAttempts += 1;
+        if (relinkPollAttempts > RELINK_POLL_MAX_ATTEMPTS) {
+            showRelinkTimeout();
+            return;
+        }
+        const me = await fetchEmailState();
+        if (me?.state === "verified") {
+            stopRelinkPolling();
+            // Full re-auth, same as consumeVerificationFlag: the relink
+            // moved the user's identity claim, and only a fresh oauth2-proxy
+            // session picks that up. This is what "let them through
+            // automatically" requires -- not just hiding the modal.
+            const rd = encodeURIComponent(cfg.portal + "/");
+            window.location.href = "/oauth2/sign_in?rd=" + rd;
+        }
+    }
+
+    function startRelinkPolling() {
+        stopRelinkPolling();
+        relinkPollAttempts = 0;
+        const status = document.getElementById("relinking-status");
+        if (status) status.style.display = "none";
+        if (!document.hidden) {
+            relinkPollHandle = setInterval(relinkPollTick, RELINK_POLL_INTERVAL_MS);
+        }
+    }
+
+    // Pause while the tab is hidden and resume on return, so a backgrounded
+    // tab doesn't spend its bounded attempt budget while nobody is looking.
+    document.addEventListener("visibilitychange", () => {
+        const relinkingOpen = document.getElementById("email-modal-relinking").style.display === "block";
+        if (!relinkingOpen) return;
+        if (document.hidden) {
+            stopRelinkPolling();
+        } else if (!relinkPollHandle && relinkPollAttempts <= RELINK_POLL_MAX_ATTEMPTS) {
+            relinkPollHandle = setInterval(relinkPollTick, RELINK_POLL_INTERVAL_MS);
+        }
+    });
 
     // No hideModal / Escape / backdrop-close on purpose. Email is mandatory
     // (ADR-0018): the edge gate is what enforces it, and a UI escape here would
@@ -1219,6 +1303,13 @@
         submit.setAttribute("aria-disabled", "true");
     }
 
+    // The button has no pending state while the request is in flight, so a
+    // user who sees no immediate feedback presses it again -- the server
+    // correctly rotates the verification token on resubmit, which silently
+    // invalidates the first email's link ("link expired"). Disabling the
+    // button for the duration of the request prevents the double-click; on
+    // failure it's re-enabled so a genuine retry still works. (409 is the
+    // exception: showTerminal() disables it permanently on purpose.)
     async function submitEmail() {
         clearError();
         const email = document.getElementById("email-input").value.trim();
@@ -1228,32 +1319,73 @@
         if (!consent) { showError("Please agree to the consent statement."); return; }
         if (!email || !email.includes("@")) { showError("Please enter a valid email."); return; }
 
-        const res = await fetch("/api/email", {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                email,
-                display_name: name,
-                consent: true,
-                consent_text_version: CONSENT_VERSION,
-            }),
-        });
+        const submitBtn = document.getElementById("email-submit-btn");
+        const originalLabel = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.setAttribute("aria-disabled", "true");
+        submitBtn.textContent = "Sending...";
+
+        let res;
+        try {
+            res = await fetch("/api/email", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email,
+                    display_name: name,
+                    consent: true,
+                    consent_text_version: CONSENT_VERSION,
+                }),
+            });
+        } catch (e) {
+            submitBtn.disabled = false;
+            submitBtn.removeAttribute("aria-disabled");
+            submitBtn.textContent = originalLabel;
+            showError("Network error. Please try again.");
+            return;
+        }
+
         if (!res.ok) {
             const body = await res.json().catch(() => ({}));
             const message = errorText(body, "Submission failed. Try again.");
             if (res.status === 409) {
                 showTerminal(message);
             } else {
+                submitBtn.disabled = false;
+                submitBtn.removeAttribute("aria-disabled");
+                submitBtn.textContent = originalLabel;
                 showError(message);
             }
             return;
         }
+        submitBtn.disabled = false;
+        submitBtn.removeAttribute("aria-disabled");
+        submitBtn.textContent = originalLabel;
         showPendingModal(email);
     }
 
+    // Same gap as submitEmail: no feedback while the request is in flight
+    // invites a double-click, and resend also rotates the verification token
+    // server-side. Disable for the duration of the request; re-enable on any
+    // retryable failure.
     async function resendVerification() {
-        const res = await fetch("/api/email/resend", { method: "POST", credentials: "include" });
+        const resendBtn = document.getElementById("resend-btn");
+        const originalLabel = resendBtn.textContent;
+        resendBtn.disabled = true;
+        resendBtn.setAttribute("aria-disabled", "true");
+        resendBtn.textContent = "Sending...";
+
+        let res;
+        try {
+            res = await fetch("/api/email/resend", { method: "POST", credentials: "include" });
+        } catch (e) {
+            resendBtn.disabled = false;
+            resendBtn.removeAttribute("aria-disabled");
+            resendBtn.textContent = originalLabel;
+            alert("Couldn't resend. Please try again later.");
+            return;
+        }
         const pendingText = document.getElementById("pending-text");
         if (!res.ok) {
             const body = await res.json().catch(() => ({}));
@@ -1268,14 +1400,20 @@
                 document.getElementById("pending-title").textContent = "Email already verified";
                 document.getElementById("pending-icon").textContent = "\u2713";
                 pendingText.textContent = message;
-                const resendBtn = document.getElementById("resend-btn");
+                resendBtn.textContent = originalLabel;
                 resendBtn.disabled = true;
                 resendBtn.setAttribute("aria-disabled", "true");
                 return;
             }
+            resendBtn.disabled = false;
+            resendBtn.removeAttribute("aria-disabled");
+            resendBtn.textContent = originalLabel;
             alert(message);
             return;
         }
+        resendBtn.disabled = false;
+        resendBtn.removeAttribute("aria-disabled");
+        resendBtn.textContent = originalLabel;
         pendingText.textContent = "New verification link sent. Please check your inbox.";
     }
 
