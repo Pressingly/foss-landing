@@ -696,11 +696,6 @@
         <div class="icon">⏳</div>
         <h2>Setting up your account</h2>
         <p id="relinking-text">Your email is confirmed. We're moving your existing app accounts over to it so nothing gets left behind. This is a one-time step — you'll be able to open the apps as soon as it's done. If it hasn't cleared by tomorrow, contact your administrator.</p>
-        <!-- Populated only after RELINK_POLL_MAX_ATTEMPTS is exhausted (see
-             showRelinkTimeout). Not a progress bar -- there is genuinely no
-             ETA under manual relink -- just an honest "we've stopped checking"
-             notice so the message doesn't go stale on an overnight tab. -->
-        <p id="relinking-status" style="display:none;"></p>
       </div>
     </div>
   </div>
@@ -1154,17 +1149,19 @@
     // a lie. Polling /api/me and auto-advancing the user the moment the
     // state flips is the honest version of "give me a sense of progress."
     //
-    // Interval: /api/me is not rate-limited, but 15s is plenty responsive
-    // for an operation that resolves on human timescales (minutes at the
-    // fastest) and keeps load low if many held users leave the tab open.
-    // Bounded window: stops after RELINK_POLL_MAX_ATTEMPTS (~15 min of
-    // visible-tab polling) so a tab left open overnight doesn't poll
-    // forever; the panel then falls back to the existing "contact your
-    // administrator" guidance instead of continuing silently.
+    // Deliberately unbounded, and deliberately without a visibilitychange
+    // pause. An earlier revision stopped after ~15 minutes, which is shorter
+    // than the wait it exists for: under manual relink a human clears the
+    // hold, and this modal's own copy says "if it hasn't cleared by
+    // tomorrow". A budget that always expires first means the auto-advance
+    // never fires for the realistic timeline, so the budget, the timeout
+    // notice and the pause/resume handler were all machinery that could only
+    // stop the feature working. Browsers already throttle timers in a
+    // background tab to roughly one tick a minute, so an overnight tab is
+    // cheap -- and continuing to poll until the hold clears is the correct
+    // behaviour, not a failure mode.
     const RELINK_POLL_INTERVAL_MS = 15000;
-    const RELINK_POLL_MAX_ATTEMPTS = 60;
     let relinkPollHandle = null;
-    let relinkPollAttempts = 0;
 
     function stopRelinkPolling() {
         if (relinkPollHandle) {
@@ -1173,21 +1170,7 @@
         }
     }
 
-    function showRelinkTimeout() {
-        stopRelinkPolling();
-        const status = document.getElementById("relinking-status");
-        if (status) {
-            status.textContent = "Still not done. Check back later, or contact your administrator.";
-            status.style.display = "block";
-        }
-    }
-
     async function relinkPollTick() {
-        relinkPollAttempts += 1;
-        if (relinkPollAttempts > RELINK_POLL_MAX_ATTEMPTS) {
-            showRelinkTimeout();
-            return;
-        }
         const me = await fetchEmailState();
         if (me?.state === "verified") {
             stopRelinkPolling();
@@ -1202,25 +1185,8 @@
 
     function startRelinkPolling() {
         stopRelinkPolling();
-        relinkPollAttempts = 0;
-        const status = document.getElementById("relinking-status");
-        if (status) status.style.display = "none";
-        if (!document.hidden) {
-            relinkPollHandle = setInterval(relinkPollTick, RELINK_POLL_INTERVAL_MS);
-        }
+        relinkPollHandle = setInterval(relinkPollTick, RELINK_POLL_INTERVAL_MS);
     }
-
-    // Pause while the tab is hidden and resume on return, so a backgrounded
-    // tab doesn't spend its bounded attempt budget while nobody is looking.
-    document.addEventListener("visibilitychange", () => {
-        const relinkingOpen = document.getElementById("email-modal-relinking").style.display === "block";
-        if (!relinkingOpen) return;
-        if (document.hidden) {
-            stopRelinkPolling();
-        } else if (!relinkPollHandle && relinkPollAttempts <= RELINK_POLL_MAX_ATTEMPTS) {
-            relinkPollHandle = setInterval(relinkPollTick, RELINK_POLL_INTERVAL_MS);
-        }
-    });
 
     // No hideModal / Escape / backdrop-close on purpose. Email is mandatory
     // (ADR-0018): the edge gate is what enforces it, and a UI escape here would
@@ -1301,6 +1267,11 @@
         const submit = document.getElementById("email-submit-btn");
         submit.disabled = true;
         submit.setAttribute("aria-disabled", "true");
+        // The button sits OUTSIDE #email-modal-fields (deliberately, see the
+        // markup comment above it) so hiding the fields leaves it on screen.
+        // Without this it keeps whatever submitEmail last set -- "Sending..."
+        // -- which reads as work still in flight under a terminal message.
+        submit.textContent = "Send verification";
     }
 
     // The button has no pending state while the request is in flight, so a
