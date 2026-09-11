@@ -693,8 +693,8 @@
          lands back in the same state -- a silent loop with no explanation. -->
     <div id="email-modal-relinking" style="display:none;">
       <div class="pending-state">
-        <div class="icon">⏳</div>
-        <h2>Setting up your account</h2>
+        <div class="icon" id="relinking-icon">⏳</div>
+        <h2 id="relinking-title">Setting up your account</h2>
         <p id="relinking-text">Your email is confirmed. We're moving your existing app accounts over to it so nothing gets left behind. This is a one-time step — you'll be able to open the apps as soon as it's done. If it hasn't cleared by tomorrow, contact your administrator.</p>
       </div>
     </div>
@@ -1126,13 +1126,30 @@
     // The gate holds this user (GateAction.RELINKING), so the modal must not
     // offer a way back into the collection form: resubmitting would only issue
     // another verification link and return them here.
-    function showRelinkingModal(email) {
+    //
+    // `failed` covers relink_state = 'relink_failed': a relink script hit a
+    // collision only a human can resolve, so this is terminal until an
+    // administrator acts. That user must not sit on the "in progress" copy or
+    // the poll forever -- neither will ever resolve on its own. Never surfaces
+    // the operator-only `relink_error` detail (it names other users'
+    // accounts); the message here is deliberately generic.
+    function showRelinkingModal(email, failed) {
         document.getElementById("email-modal").classList.add("visible");
         document.getElementById("email-modal-form").style.display = "none";
         document.getElementById("email-modal-pending").style.display = "none";
         document.getElementById("email-modal-relinking").style.display = "block";
         document.getElementById("email-banner").classList.remove("visible");
+        if (failed) {
+            stopRelinkPolling();
+            document.getElementById("relinking-icon").textContent = "⚠️";
+            document.getElementById("relinking-title").textContent = "We need an administrator to finish this";
+            document.getElementById("relinking-text").textContent =
+                "We couldn't finish moving your account over automatically. This needs an administrator to resolve by hand -- there's nothing more to wait for here. Please contact your administrator.";
+            return;
+        }
         if (email) {
+            document.getElementById("relinking-icon").textContent = "⏳";
+            document.getElementById("relinking-title").textContent = "Setting up your account";
             document.getElementById("relinking-text").textContent =
                 `${email} is confirmed. We're moving your existing app accounts over to it so nothing gets left behind. This is a one-time step — you'll be able to open the apps as soon as it's done. If it hasn't cleared by tomorrow, contact your administrator.`;
         }
@@ -1180,6 +1197,11 @@
             // automatically" requires -- not just hiding the modal.
             const rd = encodeURIComponent(cfg.portal + "/");
             window.location.href = "/oauth2/sign_in?rd=" + rd;
+        } else if (me?.state === "relink_failed") {
+            // Went terminal mid-poll: an administrator is now required, and
+            // no amount of further polling will change that. showRelinkingModal
+            // stops the poll itself.
+            showRelinkingModal(me.email, true);
         }
     }
 
@@ -1470,6 +1492,8 @@
             const me = await fetchEmailState();
             if (me?.state === "relinking") {
                 showRelinkingModal(me.email);
+            } else if (me?.state === "relink_failed") {
+                showRelinkingModal(me.email, true);
             } else if (me?.state === "pending_verification") {
                 showPendingModal(me.email);
             } else {
@@ -1501,6 +1525,8 @@
             // ignore would just let them keep bouncing off the gate.
             if (me?.state === "relinking") {
                 showRelinkingModal(me.email);
+            } else if (me?.state === "relink_failed") {
+                showRelinkingModal(me.email, true);
             } else if (me?.state === "not_collected") {
                 showCollectionModal();
             } else if (me?.state === "pending_verification") {
@@ -1509,7 +1535,7 @@
                 else showBanner("pending_verification");
             }
             // state === "verified" → do nothing
-            if (redirectedToCollect && me?.state !== "relinking") {
+            if (redirectedToCollect && me?.state !== "relinking" && me?.state !== "relink_failed") {
                 document.getElementById("collect-reason").style.display = "block";
             }
         }
