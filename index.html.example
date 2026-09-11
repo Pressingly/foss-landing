@@ -1207,6 +1207,11 @@
 
     function startRelinkPolling() {
         stopRelinkPolling();
+        // One tick immediately, then on the interval. Without the leading call
+        // a user whose relink finished while they were being redirected here
+        // still waits a full interval before anything checks -- and this poll,
+        // not the runner's, is the dominant term in what they experience.
+        relinkPollTick();
         relinkPollHandle = setInterval(relinkPollTick, RELINK_POLL_INTERVAL_MS);
     }
 
