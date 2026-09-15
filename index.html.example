@@ -766,7 +766,9 @@
   <div class="section-heading">
     <span class="section-heading-label">Core Applications</span>
     <span class="section-heading-line"></span>
-    <span class="section-heading-count">6 apps</span>
+    <!-- Kept in step with the tiles below by syncAppCount(); the literal here is
+         the no-JS fallback, so update it when adding a tile. -->
+    <span class="section-heading-count">5 apps</span>
   </div>
 
   <div class="cards-grid">
@@ -956,6 +958,17 @@
             return true;
         }
         return markerFresh();
+    }
+
+    // Derive the "N apps" heading from the tiles actually rendered, so adding or
+    // removing an app card keeps the count correct without a second edit. The
+    // markup carries a literal for the no-JS case; this overwrites it.
+    function syncAppCount() {
+        const heading = document.querySelector(".section-heading-count");
+        if (!heading) return;
+        const count = document.querySelectorAll(".cards-grid .app-card").length;
+        if (count === 0) return;
+        heading.textContent = count + (count === 1 ? " app" : " apps");
     }
 
     function setButtonState(loggedIn) {
@@ -1508,6 +1521,10 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
+        // Before the first await: detectAuthState() can take a round trip, and a
+        // stale count must not sit on screen for it.
+        syncAppCount();
+
         const loggedIn = await detectAuthState();
         setButtonState(loggedIn);
         consumeAuthFlags(loggedIn);
