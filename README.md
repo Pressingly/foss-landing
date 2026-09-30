@@ -31,7 +31,11 @@ Kubernetes alike.
 
 - The container exits at startup if a required variable is unset or empty.
 - Optional variables render as an empty string when unset.
-- Values are inserted literally, including `&`, `|` and `\`.
+- `SMB_NAME` and `SUBDOMAIN_PREFIX` are accepted because the existing compose
+  and Kubernetes setups pass them, but the current page has neither placeholder,
+  so they have no effect.
+- Values must be single-line. They are inserted literally, including `&`, `|`
+  and `\`, and trailing newlines are stripped.
 
 ## Running locally
 
@@ -53,15 +57,22 @@ The image owns the page only. Routing and headers stay in each deployment:
   (`landing-csp`) also lives in the deployment.
 - **Kubernetes:** set the variables on the container. With
   `readOnlyRootFilesystem: true`, mount writable `emptyDir` volumes at
-  `/usr/share/nginx/html`, `/var/cache/nginx` and `/var/run`.
+  `/usr/share/nginx/html`, `/var/cache/nginx` and `/run`. The emptyDir hides the
+  image's `50x.html`, so 5xx errors return a plain 404 page.
+- **Command overrides:** the page is only rendered when the stock
+  `/docker-entrypoint.sh` runs with a command starting with `nginx`. Do not set a
+  Kubernetes `command:`, and keep any compose `command:` or Kubernetes `args:`
+  starting with `nginx`. If the render is skipped, `/` returns 403 rather than a
+  default page, so readiness probes fail.
 
 The container listens on port `80`.
 
 ## Releases
 
-Tags trigger Cloud Build: `vX.Y.Z-rc.N` publishes to the sandbox Artifact
-Registry, and `vX.Y.Z` publishes to production after approval. The image path is
-`<registry>/foss-landing/landing`.
+The intended pipeline follows the other FOSS services: tags trigger Cloud Build,
+`vX.Y.Z-rc.N` publishes to the sandbox Artifact Registry, and `vX.Y.Z` publishes
+to production after approval. The image path is `<registry>/foss-landing/landing`.
+The triggers for this repository are being set up by DevOps and are not live yet.
 
 ## License
 
