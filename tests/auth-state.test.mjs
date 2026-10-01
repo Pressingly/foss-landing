@@ -149,6 +149,8 @@ test("an access denial offers the account switch on the button and the banner", 
 
 test("a reload after a denial keeps the logout offer without a logged-in toast or a background authorize", async (t) => {
   const page = await openPortal(t, pages.withIdp);
+  await visit(page);
+  await page.evaluate(() => sessionStorage.setItem("foss_just_logged_in", "1"));
   await visit(page, DENIED_PATH);
   await page.reload();
   await page.waitForLoadState("networkidle");

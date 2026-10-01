@@ -4,6 +4,7 @@ set -euo pipefail
 image=${1:?usage: render.test.sh <image>}
 fixtures=$(cd "$(dirname "$0")/fixtures" && pwd)
 failures=0
+timeout_cmd=$(command -v timeout || command -v gtimeout || { echo "timeout (coreutils) is required" >&2; exit 1; })
 
 check() {
     local name=$1
@@ -36,7 +37,7 @@ startup_fails_naming() {
     local variable=$1
     shift
     local output status=0
-    output=$(timeout 30 docker run --rm "$@" "$image" 2>&1) || status=$?
+    output=$("$timeout_cmd" 30 docker run --rm "$@" "$image" 2>&1) || status=$?
     [[ $status -ne 0 && $status -ne 124 ]] && grep -qF "$variable is required" <<<"$output"
 }
 
