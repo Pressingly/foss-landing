@@ -1,0 +1,11 @@
+{
+  "name": "foss-landing-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test auth-state.test.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
