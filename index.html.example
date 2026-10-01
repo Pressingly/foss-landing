@@ -633,6 +633,19 @@
     opacity: 0.8;
   }
   .auth-error-banner .banner-dismiss:hover { opacity: 1; }
+  .auth-error-banner .banner-action {
+    margin-top: 10px;
+    background: transparent;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    color: #fff;
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .auth-error-banner .banner-action:hover { background: rgba(255,255,255,0.15); }
 </style>
 </head>
 <body>
@@ -971,20 +984,29 @@
         heading.textContent = count + (count === 1 ? " app" : " apps");
     }
 
-    function setButtonState(loggedIn) {
+    const SWITCH_ACCOUNT_LABEL = "Sign out / switch account";
+
+    function configureAuthButton(label, variantClass, onClick) {
         const btn = document.getElementById("auth-btn");
         if (!btn) return;
         btn.disabled = false;
         btn.classList.remove("auth-btn-login", "auth-btn-logout");
-        if (loggedIn) {
-            btn.textContent = "Log out of all apps";
-            btn.classList.add("auth-btn-logout");
-            btn.onclick = logoutAll;
-        } else {
-            btn.textContent = "Login";
-            btn.classList.add("auth-btn-login");
-            btn.onclick = loginAll;
-        }
+        btn.classList.add(variantClass);
+        btn.textContent = label;
+        btn.onclick = onClick;
+    }
+
+    function showLoginButton() {
+        configureAuthButton("Login", "auth-btn-login", loginAll);
+    }
+
+    function showLogoutButton(label) {
+        configureAuthButton(label, "auth-btn-logout", logoutAll);
+    }
+
+    function setButtonState(loggedIn) {
+        if (loggedIn) showLogoutButton("Log out of all apps");
+        else showLoginButton();
     }
 
     function loginAll() {
@@ -1023,13 +1045,22 @@
         window.location.href = cfg.oauthProxy + "?rd=" + rd;
     }
 
-    function showErrorBanner(title, message) {
+    function createBannerAction(action) {
+        const button = document.createElement("button");
+        button.className = "banner-action";
+        button.textContent = action.label;
+        button.addEventListener("click", action.onClick);
+        return button;
+    }
+
+    function showErrorBanner(title, message, action) {
         var banner = document.createElement("div");
         banner.className = "auth-error-banner";
         banner.innerHTML =
             '<button class="banner-dismiss" aria-label="Dismiss">&times;</button>' +
             '<div class="banner-title">' + title + '</div>' +
             '<div>' + message + '</div>';
+        if (action) banner.appendChild(createBannerAction(action));
         banner.querySelector(".banner-dismiss").addEventListener("click", function () {
             banner.classList.remove("visible");
             setTimeout(function () { banner.remove(); }, 300);
@@ -1051,6 +1082,15 @@
             toast.classList.remove("toast-visible");
             setTimeout(() => toast.remove(), 300);
         }, 4000);
+    }
+
+    // A denial means the IdP authenticated a rejected account, so its session
+    // is still alive and Login would silently reuse it. The marker keeps the
+    // logout offer across a reload, where the denial param is already gone.
+    function offerAccountSwitch() {
+        setMarker();
+        sessionStorage.removeItem("foss_just_logged_in");
+        showLogoutButton(SWITCH_ACCOUNT_LABEL);
     }
 
     function consumeAuthFlags(loggedIn) {
@@ -1078,7 +1118,8 @@
             } else {
                 msg = "You are not authorized to access this workspace. Please contact your administrator for access.";
             }
-            showErrorBanner(title, msg);
+            offerAccountSwitch();
+            showErrorBanner(title, msg, { label: SWITCH_ACCOUNT_LABEL, onClick: logoutAll });
             params.delete("login_error");
             params.delete("reason");
             const newSearch = params.toString();
