@@ -911,6 +911,7 @@
     };
 
     const cfg = window.FOSS_LOGOUT;
+    const canEndIdpSession = Boolean(cfg.cognitoLogout && cfg.cognitoClientId);
 
     // --------------------------------------------------------------
     // IdP-alive marker (localStorage)
@@ -1026,7 +1027,7 @@
         clearMarker();
 
         let rd;
-        if (cfg.cognitoLogout && cfg.cognitoClientId) {
+        if (canEndIdpSession) {
             // 3-layer: oauth2-proxy clears cookie → IdP /logout
             // clears SSO → portal. `rd=` single-encoded so oauth2-
             // proxy decodes once and the IdP receives clean
@@ -1089,8 +1090,13 @@
     // logout offer across a reload, where the denial param is already gone.
     function offerAccountSwitch() {
         setMarker();
-        sessionStorage.removeItem("foss_just_logged_in");
+        clearJustLoggedInFlag();
         showLogoutButton(SWITCH_ACCOUNT_LABEL);
+        return { label: SWITCH_ACCOUNT_LABEL, onClick: logoutAll };
+    }
+
+    function clearJustLoggedInFlag() {
+        try { sessionStorage.removeItem("foss_just_logged_in"); } catch (e) {}
     }
 
     function consumeAuthFlags(loggedIn) {
@@ -1118,8 +1124,8 @@
             } else {
                 msg = "You are not authorized to access this workspace. Please contact your administrator for access.";
             }
-            offerAccountSwitch();
-            showErrorBanner(title, msg, { label: SWITCH_ACCOUNT_LABEL, onClick: logoutAll });
+            const switchAccount = canEndIdpSession ? offerAccountSwitch() : null;
+            showErrorBanner(title, msg, switchAccount);
             params.delete("login_error");
             params.delete("reason");
             const newSearch = params.toString();
@@ -1145,7 +1151,7 @@
 
     async function fetchEmailState() {
         try {
-            const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
+            const res = await fetch("/api/me", { credentials: "include", cache: "no-store", redirect: "manual" });
             if (!res.ok) return null;
             return await res.json();
         } catch (e) {
