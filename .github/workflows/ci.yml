@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [foss-sandbox, foss-main]
+  push:
+    branches: [foss-sandbox, foss-main]
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: foss-landing:ci
+
+jobs:
+  render:
+    name: Render template
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: docker build -t "$IMAGE" .
+      - run: tests/render.test.sh "$IMAGE"
+
+  container-smoke:
+    name: Container smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: docker build -t "$IMAGE" .
+      - run: tests/smoke.test.sh "$IMAGE"
+
+  auth-state:
+    name: Auth state (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tests
+    env:
+      LANDING_PAGE: .rendered/with-idp.html
+      LANDING_PAGE_NO_IDP: .rendered/without-idp.html
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - run: docker build -t "$IMAGE" ..
+      - name: Render pages
+        run: |
+          mkdir -p .rendered
+          ./render-page.sh "$IMAGE" fixtures/browser.env > "$LANDING_PAGE"
+          ./render-page.sh "$IMAGE" fixtures/browser-no-idp.env > "$LANDING_PAGE_NO_IDP"
+      - run: npm ci
+      - run: npx playwright install --with-deps --only-shell chromium
+      - run: npm test

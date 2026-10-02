@@ -67,6 +67,34 @@ The image owns the page only. Routing and headers stay in each deployment:
 
 The container listens on port `80`.
 
+## Tests
+
+`.github/workflows/ci.yml` runs on pull requests and pushes to `foss-sandbox` and
+`foss-main`:
+
+- **Render template:** the image's own render script must leave no placeholders,
+  link all five app cards and fill `FOSS_LOGOUT`, and startup must fail when
+  `PLATFORM_DOMAIN` or `PLATFORM_PROTOCOL` is unset or empty.
+- **Container smoke:** the image starts and serves the rendered page on `/`.
+- **Auth state:** Playwright drives the rendered page against a local server that
+  stands in for oauth2-proxy, the IdP and `/api/me`, covering login, logout and
+  the access-denied account switch.
+
+To run them locally:
+
+```bash
+docker build -t foss-landing:ci .
+tests/render.test.sh foss-landing:ci
+tests/smoke.test.sh foss-landing:ci
+
+cd tests
+npm ci && npx playwright install --only-shell chromium
+mkdir -p .rendered
+./render-page.sh foss-landing:ci fixtures/browser.env > .rendered/with-idp.html
+./render-page.sh foss-landing:ci fixtures/browser-no-idp.env > .rendered/without-idp.html
+LANDING_PAGE=.rendered/with-idp.html LANDING_PAGE_NO_IDP=.rendered/without-idp.html npm test
+```
+
 ## Releases
 
 The intended pipeline follows the other FOSS services: tags trigger Cloud Build,
