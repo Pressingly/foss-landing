@@ -73,7 +73,7 @@ The container listens on port `80`.
 `foss-main`:
 
 - **Render template:** the image's own render script must leave no placeholders,
-  link all five app cards and fill `FOSS_LOGOUT`, and startup must fail when
+  link all six app cards and fill `FOSS_LOGOUT`, and startup must fail when
   `PLATFORM_DOMAIN` or `PLATFORM_PROTOCOL` is unset or empty.
 - **Container smoke:** the image starts and serves the rendered page on `/`.
 - **Auth state:** Playwright drives the rendered page against a local server that

@@ -24,10 +24,11 @@ no_placeholders_left() { ! grep -q '{{' <<<"$page"; }
 app_card_count_is() { [[ $(grep -c 'class="app-card ' <<<"$page") -eq $1 ]]; }
 
 check "no {{...}} placeholders remain" no_placeholders_left
-check "exactly 5 app cards render" app_card_count_is 5
+check "exactly 6 app cards render" app_card_count_is 6
 for app in docs pm design twenty support; do
     check "app card links to https://$app.example.test" page_contains "href=\"https://$app.example.test\""
 done
+check "app card links to https://mautic.example.test/s/dashboard" page_contains 'href="https://mautic.example.test/s/dashboard"'
 check "FOSS_LOGOUT.portal" page_contains 'portal: "https://example.test"'
 check "FOSS_LOGOUT.oauthProxy" page_contains 'oauthProxy: "https://auth.example.test/oauth2/sign_out"'
 check "FOSS_LOGOUT.cognitoLogout" page_contains 'cognitoLogout: "https://idp.example.test/logout"'
