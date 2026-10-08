@@ -33,12 +33,14 @@ check "FOSS_LOGOUT.portal" page_contains 'portal: "https://example.test"'
 check "FOSS_LOGOUT.oauthProxy" page_contains 'oauthProxy: "https://auth.example.test/oauth2/sign_out"'
 check "FOSS_LOGOUT.cognitoLogout" page_contains 'cognitoLogout: "https://idp.example.test/logout"'
 check "FOSS_LOGOUT.cognitoClientId" page_contains 'cognitoClientId: "ci-client"'
-check "no Chatwoot tile without CHATWOOT_HOST" not_page_contains 'card-chatwoot'
+check "no Chatwoot tile without CHATWOOT_HOST" not_page_contains 'class="app-card card-chatwoot"'
+check "no Chatwoot pill without CHATWOOT_HOST" not_page_contains '</span>Chatwoot</span>'
 
 page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-chatwoot.env")
 check "no {{...}} placeholders remain with CHATWOOT_HOST" no_placeholders_left
 check "exactly 6 app cards render with CHATWOOT_HOST" app_card_count_is 6
 check "Chatwoot card links to CHATWOOT_HOST" page_contains 'href="https://chatwoot.example.test"'
+check "Chatwoot pill renders with CHATWOOT_HOST" page_contains '</span>Chatwoot</span>'
 check "no app markers leak into the page" not_page_contains 'app:chatwoot'
 
 startup_fails_naming() {
