@@ -747,7 +747,9 @@
       <span class="app-pill"><span class="app-pill-dot"></span>Penpot</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Twenty</span>
       <span class="app-pill"><span class="app-pill-dot"></span>Zammad</span>
+      <!-- app:mautic -->
       <span class="app-pill"><span class="app-pill-dot"></span>Mautic</span>
+      <!-- /app:mautic -->
     </div>
 
     <div class="auth-badge">
@@ -785,7 +787,7 @@
     <span class="section-heading-line"></span>
     <!-- Kept in step with the tiles below by syncAppCount(); the literal here is
          the no-JS fallback, so update it when adding a tile. -->
-    <span class="section-heading-count">6 apps</span>
+    <span class="section-heading-count">5 apps</span>
   </div>
 
   <div class="cards-grid">
@@ -855,7 +857,8 @@
       </div>
     </a>
 
-    <a class="app-card card-mautic" href="{{PROTOCOL}}://mautic.{{DOMAIN}}/s/dashboard" target="_blank" rel="noopener noreferrer">
+    <!-- app:mautic -->
+    <a class="app-card card-mautic" href="{{PROTOCOL}}://{{MAUTIC_HOST}}/s/dashboard" target="_blank" rel="noopener noreferrer">
       <div class="card-icon-wrap">📣</div>
       <div class="card-category">Marketing Automation</div>
       <div class="card-name">Mautic</div>
@@ -867,6 +870,7 @@
         </svg>
       </div>
     </a>
+    <!-- /app:mautic -->
 
   </div>
 

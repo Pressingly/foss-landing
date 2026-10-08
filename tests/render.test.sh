@@ -20,19 +20,27 @@ check() {
 page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample.env")
 
 page_contains() { grep -qF -- "$1" <<<"$page"; }
+not_page_contains() { ! page_contains "$1"; }
 no_placeholders_left() { ! grep -q '{{' <<<"$page"; }
 app_card_count_is() { [[ $(grep -c 'class="app-card ' <<<"$page") -eq $1 ]]; }
 
 check "no {{...}} placeholders remain" no_placeholders_left
-check "exactly 6 app cards render" app_card_count_is 6
+check "exactly 5 app cards render" app_card_count_is 5
 for app in docs pm design twenty support; do
     check "app card links to https://$app.example.test" page_contains "href=\"https://$app.example.test\""
 done
-check "app card links to https://mautic.example.test/s/dashboard" page_contains 'href="https://mautic.example.test/s/dashboard"'
 check "FOSS_LOGOUT.portal" page_contains 'portal: "https://example.test"'
 check "FOSS_LOGOUT.oauthProxy" page_contains 'oauthProxy: "https://auth.example.test/oauth2/sign_out"'
 check "FOSS_LOGOUT.cognitoLogout" page_contains 'cognitoLogout: "https://idp.example.test/logout"'
 check "FOSS_LOGOUT.cognitoClientId" page_contains 'cognitoClientId: "ci-client"'
+check "no Mautic tile without MAUTIC_HOST" not_page_contains 'class="app-card card-mautic"'
+check "no Mautic pill without MAUTIC_HOST" not_page_contains '</span>Mautic</span>'
+
+page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-mautic.env")
+check "no {{...}} placeholders remain with MAUTIC_HOST" no_placeholders_left
+check "exactly 6 app cards render with MAUTIC_HOST" app_card_count_is 6
+check "Mautic card links to MAUTIC_HOST" page_contains 'href="https://mautic.example.test/s/dashboard"'
+check "no app markers leak into the page" not_page_contains 'app:mautic'
 
 startup_fails_naming() {
     local variable=$1
