@@ -792,9 +792,8 @@
   <div class="section-heading">
     <span class="section-heading-label">Core Applications</span>
     <span class="section-heading-line"></span>
-    <!-- Kept in step with the tiles below by syncAppCount(); the literal here is
-         the no-JS fallback, so update it when adding a tile. -->
-    <span class="section-heading-count">5 apps</span>
+    <!-- Rendered at container start; syncAppCount() keeps it in step after load. -->
+    <span class="section-heading-count">{{APP_COUNT}} apps</span>
   </div>
 
   <div class="cards-grid">
