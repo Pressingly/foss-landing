@@ -28,12 +28,17 @@ Kubernetes alike.
 | `OIDC_CLIENT_ID` | `{{OIDC_CLIENT_ID}}` | for sign-out | Cognito app client id |
 | `SMB_NAME` | `{{SMB_NAME}}` | no | `foss` |
 | `SUBDOMAIN_PREFIX` | `{{SUBDOMAIN_PREFIX}}` | no | empty |
+| `CHATWOOT_HOST` | `{{CHATWOOT_HOST}}` | no | `chatwoot.moneta.askii.ai` |
+| `MAUTIC_HOST` | `{{MAUTIC_HOST}}` | no | `mautic.moneta.askii.ai` |
 
 - The container exits at startup if a required variable is unset or empty.
 - Optional variables render as an empty string when unset.
 - `SMB_NAME` and `SUBDOMAIN_PREFIX` are accepted because the existing compose
   and Kubernetes setups pass them, but the current page has neither placeholder,
   so they have no effect.
+- `CHATWOOT_HOST` and `MAUTIC_HOST` are optional because Chatwoot and Mautic are
+  opt-in: empty or unset drops that app's tile and pill (everything between its
+  `<!-- app:chatwoot -->` or `<!-- app:mautic -->` markers).
 - Values must be single-line. They are inserted literally, including `&`, `|`
   and `\`, and trailing newlines are stripped.
 
@@ -73,7 +78,8 @@ The container listens on port `80`.
 `foss-main`:
 
 - **Render template:** the image's own render script must leave no placeholders,
-  link all five app cards and fill `FOSS_LOGOUT`, and startup must fail when
+  link all five app cards (six with `CHATWOOT_HOST` or `MAUTIC_HOST`, seven with
+  both) and fill `FOSS_LOGOUT`, and startup must fail when
   `PLATFORM_DOMAIN` or `PLATFORM_PROTOCOL` is unset or empty.
 - **Container smoke:** the image starts and serves the rendered page on `/`.
 - **Auth state:** Playwright drives the rendered page against a local server that
