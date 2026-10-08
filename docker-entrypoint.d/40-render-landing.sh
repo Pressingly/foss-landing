@@ -24,6 +24,7 @@ optional_app_filter() {
 
 sed \
     -e "$(optional_app_filter chatwoot "${CHATWOOT_HOST:-}")" \
+    -e "$(optional_app_filter mautic "${MAUTIC_HOST:-}")" \
     -e "s|{{PROTOCOL}}|$(escape_for_sed "$PLATFORM_PROTOCOL")|g" \
     -e "s|{{DOMAIN}}|$(escape_for_sed "$PLATFORM_DOMAIN")|g" \
     -e "s|{{SMB_NAME}}|$(escape_for_sed "${SMB_NAME:-}")|g" \
@@ -31,6 +32,7 @@ sed \
     -e "s|{{OIDC_LOGOUT_URI}}|$(escape_for_sed "${OIDC_LOGOUT_URI:-}")|g" \
     -e "s|{{OIDC_CLIENT_ID}}|$(escape_for_sed "${OIDC_CLIENT_ID:-}")|g" \
     -e "s|{{CHATWOOT_HOST}}|$(escape_for_sed "${CHATWOOT_HOST:-}")|g" \
+    -e "s|{{MAUTIC_HOST}}|$(escape_for_sed "${MAUTIC_HOST:-}")|g" \
     "$template" > "$html_dir/index.html.tmp"
 
 mv "$html_dir/index.html.tmp" "$html_dir/index.html"

@@ -253,6 +253,7 @@
   .card-twenty    { --card-stripe: #4f46e5; }
   .card-zammad    { --card-stripe: #f56565; }
   .card-chatwoot  { --card-stripe: #1f93ff; }
+  .card-mautic    { --card-stripe: #4e5e9e; }
 
   .card-icon-wrap {
     width: 38px; height: 38px;
@@ -269,6 +270,7 @@
   .card-twenty    .card-icon-wrap { background: rgba(79,70,229,0.1);   }
   .card-zammad    .card-icon-wrap { background: rgba(245,101,101,0.1); }
   .card-chatwoot  .card-icon-wrap { background: rgba(31,147,255,0.1);  }
+  .card-mautic    .card-icon-wrap { background: rgba(78,94,158,0.1);  }
 
   .card-category {
     font-size: 10.5px; font-weight: 600;
@@ -281,6 +283,7 @@
   .card-twenty    .card-category { color: #4338ca; }
   .card-zammad    .card-category { color: #c53030; }
   .card-chatwoot  .card-category { color: #1570cc; }
+  .card-mautic    .card-category { color: #3d4a80; }
 
   .card-name {
     font-family: 'Syne', sans-serif;
@@ -750,6 +753,10 @@
       <!-- app:chatwoot -->
       <span class="app-pill"><span class="app-pill-dot"></span>Chatwoot</span>
       <!-- /app:chatwoot -->
+
+      <!-- app:mautic -->
+      <span class="app-pill"><span class="app-pill-dot"></span>Mautic</span>
+      <!-- /app:mautic -->
     </div>
 
     <div class="auth-badge">
@@ -871,6 +878,21 @@
       </div>
     </a>
     <!-- /app:chatwoot -->
+
+    <!-- app:mautic -->
+    <a class="app-card card-mautic" href="{{PROTOCOL}}://{{MAUTIC_HOST}}/s/dashboard" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon-wrap">📣</div>
+      <div class="card-category">Marketing Automation</div>
+      <div class="card-name">Mautic</div>
+      <div class="card-desc">Email campaigns, landing pages, forms and contact segments for your marketing</div>
+      <div class="card-link">
+        Open
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+    <!-- /app:mautic -->
 
   </div>
 
