@@ -182,6 +182,7 @@ async function visitSignedInAs(t, me) {
   const page = await openPortal(t, pages.withIdp);
   platform.proxyAuthStatus = 202;
   platform.me = me;
+  await page.clock.install();
   await visit(page);
   await page.waitForLoadState("networkidle");
   return page;
@@ -201,7 +202,7 @@ for (const state of ["relinking", "relink_failed"]) {
     assert.deepEqual(await visibleModalPanels(page), ["hold"]);
     assert.match(await page.textContent("#hold-text"), /administrator is finishing your account setup/);
     const hitsAfterRender = apiMeHits();
-    await page.waitForTimeout(500);
+    await page.clock.runFor(60000);
     assert.equal(apiMeHits(), hitsAfterRender);
   });
 }

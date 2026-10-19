@@ -714,7 +714,7 @@
       <div class="pending-state">
         <div class="icon">⏳</div>
         <h2>Account setup in progress</h2>
-        <p id="hold-text">Your email is confirmed. An administrator is finishing your account setup. You'll be able to open the apps once it's done. Reload this page to check again.</p>
+        <p id="hold-text">Your email is confirmed. An administrator is finishing your account setup. Once they confirm it is done, log out and log back in to open the apps.</p>
       </div>
     </div>
   </div>
@@ -1239,7 +1239,7 @@
         document.getElementById("email-banner").classList.remove("visible");
         if (email) {
             document.getElementById("hold-text").textContent =
-                `${email} is confirmed. An administrator is finishing your account setup. You'll be able to open the apps once it's done. Reload this page to check again.`;
+                `${email} is confirmed. An administrator is finishing your account setup. Once they confirm it is done, log out and log back in to open the apps.`;
         }
     }
 
