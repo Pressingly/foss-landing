@@ -33,7 +33,9 @@ function platformResponse(url) {
     case "example.test/oauth2/start":
       return { status: 200, headers: { "content-type": "text/html" }, body: "oauth2-proxy start" };
     case "example.test/api/me":
-      return redirect(IDP_AUTHORIZE);
+      return platform.me
+        ? { status: 200, headers: { "content-type": "application/json" }, body: JSON.stringify(platform.me) }
+        : redirect(IDP_AUTHORIZE);
     case "auth.example.test/oauth2/sign_out":
       return redirect(url.searchParams.get("rd"));
     case "idp.example.test/logout":
@@ -165,6 +167,44 @@ test("a reload after a denial keeps the logout offer without a logged-in toast o
     "/api/me redirect to the IdP must not be followed",
   );
 });
+
+const apiMeHits = () => hitEndpoints().filter((endpoint) => endpoint === "example.test/api/me").length;
+const visibleModalPanels = (page) =>
+  page.evaluate(() => {
+    const modal = document.getElementById("email-modal");
+    const panels = ["form", "pending", "hold"].filter(
+      (name) => getComputedStyle(document.getElementById(`email-modal-${name}`)).display !== "none",
+    );
+    return modal.classList.contains("visible") ? panels : [];
+  });
+
+async function visitSignedInAs(t, me) {
+  const page = await openPortal(t, pages.withIdp);
+  platform.proxyAuthStatus = 202;
+  platform.me = me;
+  await visit(page);
+  await page.waitForLoadState("networkidle");
+  return page;
+}
+
+test("a verified user lands on the portal with no extra screen", async (t) => {
+  const page = await visitSignedInAs(t, { state: "verified", email: "user@example.test" });
+
+  assert.deepEqual(await visibleModalPanels(page), []);
+  assert.equal(apiMeHits(), 1);
+});
+
+for (const state of ["relinking", "relink_failed"]) {
+  test(`a held user (${state}) sees the hold panel and is not polled`, async (t) => {
+    const page = await visitSignedInAs(t, { state, email: "user@example.test" });
+
+    assert.deepEqual(await visibleModalPanels(page), ["hold"]);
+    assert.match(await page.textContent("#hold-text"), /administrator is finishing your account setup/);
+    const hitsAfterRender = apiMeHits();
+    await page.waitForTimeout(500);
+    assert.equal(apiMeHits(), hitsAfterRender);
+  });
+}
 
 async function switchAccountVia(t, selector, { dismissBanner }) {
   const page = await openPortal(t, pages.withIdp);
