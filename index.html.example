@@ -715,6 +715,7 @@
         <div class="icon">⏳</div>
         <h2>Account setup in progress</h2>
         <p id="hold-text">Your email is confirmed. An administrator is finishing your account setup. Once they confirm it is done, log out and log back in to open the apps.</p>
+        <button class="submit-btn" id="hold-logout-btn">Log out</button>
       </div>
     </div>
   </div>
@@ -1492,6 +1493,7 @@
     function attachLaunchpadHandlers() {
         document.getElementById("email-submit-btn").addEventListener("click", submitEmail);
         document.getElementById("resend-btn").addEventListener("click", resendVerification);
+        document.getElementById("hold-logout-btn").addEventListener("click", logoutAll);
         // Straight back to the collection form. POST /api/email already handles
         // a resubmission with a different address: it replaces the pending one,
         // issues a fresh token (which kills the old link), leaves nothing

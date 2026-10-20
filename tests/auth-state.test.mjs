@@ -205,6 +205,17 @@ for (const state of ["relinking", "relink_failed"]) {
     await page.clock.runFor(60000);
     assert.equal(apiMeHits(), hitsAfterRender);
   });
+
+  test(`a held user (${state}) can log out from inside the hold panel`, async (t) => {
+    const page = await visitSignedInAs(t, { state, email: "user@example.test" });
+    platform.hits.length = 0;
+
+    await page.click("#email-modal-hold #hold-logout-btn", { timeout: 5000 });
+    await page.waitForSelector('.toast:has-text("You have been logged out.")');
+
+    assert.ok(hitEndpoints().includes("auth.example.test/oauth2/sign_out"));
+    assert.ok(hitEndpoints().includes("idp.example.test/logout"));
+  });
 }
 
 async function switchAccountVia(t, selector, { dismissBanner }) {
