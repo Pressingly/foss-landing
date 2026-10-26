@@ -254,6 +254,7 @@
   .card-zammad    { --card-stripe: #f56565; }
   .card-chatwoot  { --card-stripe: #1f93ff; }
   .card-mautic    { --card-stripe: #4e5e9e; }
+  .card-erpnext   { --card-stripe: #0089ff; }
 
   .card-icon-wrap {
     width: 38px; height: 38px;
@@ -272,6 +273,7 @@
   .card-zammad    .card-icon-wrap { background: rgba(245,101,101,0.1); }
   .card-chatwoot  .card-icon-wrap { background: rgba(31,147,255,0.1);  }
   .card-mautic    .card-icon-wrap { background: rgba(78,94,158,0.1);  }
+  .card-erpnext   .card-icon-wrap { background: rgba(0,137,255,0.1);  }
 
   .card-category {
     font-size: 10.5px; font-weight: 600;
@@ -285,6 +287,7 @@
   .card-zammad    .card-category { color: #c53030; }
   .card-chatwoot  .card-category { color: #1570cc; }
   .card-mautic    .card-category { color: #3d4a80; }
+  .card-erpnext   .card-category { color: #006fcc; }
 
   .card-name {
     font-family: 'Syne', sans-serif;
@@ -758,6 +761,10 @@
       <!-- app:mautic -->
       <span class="app-pill"><span class="app-pill-dot"></span>Mautic</span>
       <!-- /app:mautic -->
+
+      <!-- app:erpnext -->
+      <span class="app-pill"><span class="app-pill-dot"></span>ERPNext</span>
+      <!-- /app:erpnext -->
     </div>
 
     <div class="auth-badge">
@@ -893,6 +900,21 @@
       </div>
     </a>
     <!-- /app:mautic -->
+
+    <!-- app:erpnext -->
+    <a class="app-card card-erpnext" href="{{PROTOCOL}}://{{ERPNEXT_HOST}}/app" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon-wrap"><svg viewBox="0.62207 0 100 100" aria-hidden="true"><path fill="#0089FF" d="M72.0506 0H29.1935C13.4139 0 0.62207 12.7919 0.62207 28.5714V71.4286C0.62207 87.2081 13.4139 100 29.1935 100H72.0506C87.8302 100 100.622 87.2081 100.622 71.4286V28.5714C100.622 12.7919 87.8302 0 72.0506 0Z"/><path fill="white" fill-rule="evenodd" clip-rule="evenodd" d="M68.0067 32.945H66.3293H44.5235H33.6205V23.999H68.0067V32.945ZM44.5233 53.9122V66.2129H68.2861V75.1589H33.6204V44.9662H44.5233H66.3291V53.9122H44.5233Z"/></svg></div>
+      <div class="card-category">ERP / Accounting</div>
+      <div class="card-name">ERPNext</div>
+      <div class="card-desc">Accounting, invoicing, inventory and purchasing to run your business</div>
+      <div class="card-link">
+        Open
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+    <!-- /app:erpnext -->
 
   </div>
 
