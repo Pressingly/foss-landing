@@ -26,7 +26,7 @@ app_card_count_is() { [[ $(grep -c 'class="app-card ' <<<"$page") -eq $1 ]]; }
 cards_in_order() {
     local order
     order=$(grep -o 'class="app-card card-[a-z]*"' <<<"$page" | sed 's/.*card-\([a-z]*\)"/card-\1/' | tr '\n' ' ')
-    [[ "$order" == *"$1 $2 $3"* ]]
+    [[ "$order" == *"$*"* ]]
 }
 
 check "no {{...}} placeholders remain" no_placeholders_left
@@ -39,11 +39,12 @@ check "FOSS_LOGOUT.portal" page_contains 'portal: "https://example.test"'
 check "FOSS_LOGOUT.oauthProxy" page_contains 'oauthProxy: "https://auth.example.test/oauth2/sign_out"'
 check "FOSS_LOGOUT.cognitoLogout" page_contains 'cognitoLogout: "https://idp.example.test/logout"'
 check "FOSS_LOGOUT.cognitoClientId" page_contains 'cognitoClientId: "ci-client"'
-for app in chatwoot mautic; do
+for app in chatwoot mautic erpnext; do
     check "no ${app} tile without its host" not_page_contains "class=\"app-card card-${app}\""
 done
 check "no Chatwoot pill without CHATWOOT_HOST" not_page_contains '</span>Chatwoot</span>'
 check "no Mautic pill without MAUTIC_HOST" not_page_contains '</span>Mautic</span>'
+check "no ERPNext pill without ERPNEXT_HOST" not_page_contains '</span>ERPNext</span>'
 
 page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-chatwoot.env")
 check "no {{...}} placeholders remain with CHATWOOT_HOST" no_placeholders_left
@@ -51,6 +52,7 @@ check "exactly 6 app cards render with CHATWOOT_HOST" app_card_count_is 6
 check "Chatwoot card links to CHATWOOT_HOST" page_contains 'href="https://chatwoot.example.test"'
 check "Chatwoot pill renders with CHATWOOT_HOST" page_contains '</span>Chatwoot</span>'
 check "no Mautic tile with only CHATWOOT_HOST" not_page_contains 'class="app-card card-mautic"'
+check "no ERPNext tile with only CHATWOOT_HOST" not_page_contains 'class="app-card card-erpnext"'
 check "no app markers leak into the page with CHATWOOT_HOST" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with CHATWOOT_HOST" not_page_contains '<!-- /app:'
 check "heading counts 6 apps with CHATWOOT_HOST" page_contains '>6 apps<'
@@ -61,19 +63,32 @@ check "exactly 6 app cards render with MAUTIC_HOST" app_card_count_is 6
 check "Mautic card links to MAUTIC_HOST" page_contains 'href="https://mautic.example.test/s/dashboard"'
 check "Mautic pill renders with MAUTIC_HOST" page_contains '</span>Mautic</span>'
 check "no Chatwoot tile with only MAUTIC_HOST" not_page_contains 'class="app-card card-chatwoot"'
+check "no ERPNext tile with only MAUTIC_HOST" not_page_contains 'class="app-card card-erpnext"'
 check "no app markers leak into the page with MAUTIC_HOST" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with MAUTIC_HOST" not_page_contains '<!-- /app:'
 check "heading counts 6 apps with MAUTIC_HOST" page_contains '>6 apps<'
 
-page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-both.env")
-check "no {{...}} placeholders remain with both hosts" no_placeholders_left
-check "exactly 7 app cards render with both hosts" app_card_count_is 7
-check "Chatwoot card links to CHATWOOT_HOST with both hosts" page_contains 'href="https://chatwoot.example.test"'
-check "Mautic card links to MAUTIC_HOST with both hosts" page_contains 'href="https://mautic.example.test/s/dashboard"'
-check "Chatwoot card comes before Mautic card" cards_in_order card-zammad card-chatwoot card-mautic
-check "no app markers leak into the page with both hosts" not_page_contains '<!-- app:'
-check "no closing app markers leak into the page with both hosts" not_page_contains '<!-- /app:'
-check "heading counts 7 apps with both hosts" page_contains '>7 apps<'
+page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-erpnext.env")
+check "no {{...}} placeholders remain with ERPNEXT_HOST" no_placeholders_left
+check "exactly 6 app cards render with ERPNEXT_HOST" app_card_count_is 6
+check "ERPNext card links to the desk on ERPNEXT_HOST" page_contains 'href="https://erp.example.test/app"'
+check "ERPNext pill renders with ERPNEXT_HOST" page_contains '</span>ERPNext</span>'
+check "no Chatwoot tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-chatwoot"'
+check "no Mautic tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-mautic"'
+check "no app markers leak into the page with ERPNEXT_HOST" not_page_contains '<!-- app:'
+check "no closing app markers leak into the page with ERPNEXT_HOST" not_page_contains '<!-- /app:'
+check "heading counts 6 apps with ERPNEXT_HOST" page_contains '>6 apps<'
+
+page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-all.env")
+check "no {{...}} placeholders remain with all hosts" no_placeholders_left
+check "exactly 8 app cards render with all hosts" app_card_count_is 8
+check "Chatwoot card links to CHATWOOT_HOST with all hosts" page_contains 'href="https://chatwoot.example.test"'
+check "Mautic card links to MAUTIC_HOST with all hosts" page_contains 'href="https://mautic.example.test/s/dashboard"'
+check "ERPNext card links to ERPNEXT_HOST with all hosts" page_contains 'href="https://erp.example.test/app"'
+check "optional cards follow Zammad as Chatwoot, Mautic, ERPNext" cards_in_order card-zammad card-chatwoot card-mautic card-erpnext
+check "no app markers leak into the page with all hosts" not_page_contains '<!-- app:'
+check "no closing app markers leak into the page with all hosts" not_page_contains '<!-- /app:'
+check "heading counts 8 apps with all hosts" page_contains '>8 apps<'
 
 startup_fails_naming() {
     local variable=$1
@@ -97,6 +112,8 @@ check "startup fails when MAUTIC_HOST is only whitespace" \
     startup_fails_saying "MAUTIC_HOST must be a bare hostname" -e "MAUTIC_HOST= "
 check "startup fails when MAUTIC_HOST carries a quote" \
     startup_fails_saying "MAUTIC_HOST must be a bare hostname" -e 'MAUTIC_HOST=m.example.test" onmouseover="x'
+check "startup fails when ERPNEXT_HOST carries a path" \
+    startup_fails_saying "ERPNEXT_HOST must be a bare hostname" -e ERPNEXT_HOST=erp.example.test/app
 check "startup fails when PLATFORM_DOMAIN is unset" \
     startup_fails_naming PLATFORM_DOMAIN -e PLATFORM_PROTOCOL=https
 check "startup fails when PLATFORM_DOMAIN is empty" \
