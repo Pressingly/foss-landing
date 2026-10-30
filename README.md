@@ -31,16 +31,17 @@ Kubernetes alike.
 | `CHATWOOT_HOST` | `{{CHATWOOT_HOST}}` | no | `chatwoot.moneta.askii.ai` |
 | `MAUTIC_HOST` | `{{MAUTIC_HOST}}` | no | `mautic.moneta.askii.ai` |
 | `ERPNEXT_HOST` | `{{ERPNEXT_HOST}}` | no | `erp.moneta.askii.ai` |
+| `ZULIP_HOST` | `{{ZULIP_HOST}}` | no | `zulip.moneta.askii.ai` |
 
 - The container exits at startup if a required variable is unset or empty.
 - Optional variables render as an empty string when unset.
 - `SMB_NAME` and `SUBDOMAIN_PREFIX` are accepted because the existing compose
   and Kubernetes setups pass them, but the current page has neither placeholder,
   so they have no effect.
-- `CHATWOOT_HOST`, `MAUTIC_HOST` and `ERPNEXT_HOST` are optional because Chatwoot,
-  Mautic and ERPNext are opt-in: empty or unset drops that app's tile and pill
-  (everything between its `<!-- app:chatwoot -->`, `<!-- app:mautic -->` or
-  `<!-- app:erpnext -->` markers). Each must be a bare hostname, or the container
+- `CHATWOOT_HOST`, `MAUTIC_HOST`, `ERPNEXT_HOST` and `ZULIP_HOST` are optional
+  because Chatwoot, Mautic, ERPNext and Zulip are opt-in: empty or unset drops
+  that app's tile and pill (everything between its `<!-- app:chatwoot -->`,
+  `<!-- app:mautic -->`, `<!-- app:erpnext -->` or `<!-- app:zulip -->` markers). Each must be a bare hostname, or the container
   exits at startup.
 - Values must be single-line. They are inserted literally, including `&`, `|`
   and `\`, and trailing newlines are stripped.
@@ -81,8 +82,8 @@ The container listens on port `80`.
 `foss-main`:
 
 - **Render template:** the image's own render script must leave no placeholders,
-  link all five app cards (one more for each of `CHATWOOT_HOST`, `MAUTIC_HOST`
-  and `ERPNEXT_HOST`, eight with all three) and fill `FOSS_LOGOUT`, and startup
+  link all five app cards (one more for each of `CHATWOOT_HOST`, `MAUTIC_HOST`,
+  `ERPNEXT_HOST` and `ZULIP_HOST`, nine with all four) and fill `FOSS_LOGOUT`, and startup
   must fail when `PLATFORM_DOMAIN` or `PLATFORM_PROTOCOL` is unset or empty, or
   an optional host is not a bare hostname.
 - **Container smoke:** the image starts and serves the rendered page on `/`.

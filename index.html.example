@@ -255,6 +255,7 @@
   .card-chatwoot  { --card-stripe: #1f93ff; }
   .card-mautic    { --card-stripe: #4e5e9e; }
   .card-erpnext   { --card-stripe: #0089ff; }
+  .card-zulip     { --card-stripe: #6492fe; }
 
   .card-icon-wrap {
     width: 38px; height: 38px;
@@ -274,6 +275,7 @@
   .card-chatwoot  .card-icon-wrap { background: rgba(31,147,255,0.1);  }
   .card-mautic    .card-icon-wrap { background: rgba(78,94,158,0.1);  }
   .card-erpnext   .card-icon-wrap { background: rgba(0,137,255,0.1);  }
+  .card-zulip     .card-icon-wrap { background: rgba(100,146,254,0.1); }
 
   .card-category {
     font-size: 10.5px; font-weight: 600;
@@ -288,6 +290,7 @@
   .card-chatwoot  .card-category { color: #1570cc; }
   .card-mautic    .card-category { color: #3d4a80; }
   .card-erpnext   .card-category { color: #006fcc; }
+  .card-zulip     .card-category { color: #4a6fd4; }
 
   .card-name {
     font-family: 'Syne', sans-serif;
@@ -417,6 +420,9 @@
   .app-card:nth-child(4) { animation: fadeUp 0.5s ease 0.55s both; }
   .app-card:nth-child(5) { animation: fadeUp 0.5s ease 0.60s both; }
   .app-card:nth-child(6) { animation: fadeUp 0.5s ease 0.65s both; }
+  .app-card:nth-child(7) { animation: fadeUp 0.5s ease 0.70s both; }
+  .app-card:nth-child(8) { animation: fadeUp 0.5s ease 0.75s both; }
+  .app-card:nth-child(9) { animation: fadeUp 0.5s ease 0.80s both; }
 
   /* ══════════════════════════════
      AUTH BUTTON (hero top-right) + TOAST
@@ -765,6 +771,10 @@
       <!-- app:erpnext -->
       <span class="app-pill"><span class="app-pill-dot"></span>ERPNext</span>
       <!-- /app:erpnext -->
+
+      <!-- app:zulip -->
+      <span class="app-pill"><span class="app-pill-dot"></span>Zulip</span>
+      <!-- /app:zulip -->
     </div>
 
     <div class="auth-badge">
@@ -915,6 +925,21 @@
       </div>
     </a>
     <!-- /app:erpnext -->
+
+    <!-- app:zulip -->
+    <a class="app-card card-zulip" href="{{PROTOCOL}}://{{ZULIP_HOST}}" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon-wrap"><svg viewBox="0 0 773.12 773.12" aria-hidden="true"><linearGradient id="zulip-tile-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#50adff"/><stop offset="1" stop-color="#7877fc"/></linearGradient><circle cx="386.56" cy="386.56" r="386.56" fill="url(#zulip-tile-gradient)"/><path fill="#fff" d="M566.66 527.25c0 33.03-24.23 60.05-53.84 60.05H260.29c-29.61 0-53.84-27.02-53.84-60.05 0-20.22 9.09-38.2 22.93-49.09l134.37-120c2.5-2.14 5.74 1.31 3.94 4.19l-49.29 98.69c-1.38 2.76.41 6.16 3.25 6.16h191.18c29.61 0 53.83 27.03 53.83 60.05zm0-281.39c0 20.22-9.09 38.2-22.93 49.09l-134.37 120c-2.5 2.14-5.74-1.31-3.94-4.19l49.29-98.69c1.38-2.76-.41-6.16-3.25-6.16H260.29c-29.61 0-53.84-27.02-53.84-60.05s24.23-60.05 53.84-60.05h252.54c29.61 0 53.83 27.02 53.83 60.05z"/></svg></div>
+      <div class="card-category">Team Chat</div>
+      <div class="card-name">Zulip</div>
+      <div class="card-desc">Channels and topics that keep your team's conversations organized and easy to catch up on</div>
+      <div class="card-link">
+        Open
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+    <!-- /app:zulip -->
 
   </div>
 
