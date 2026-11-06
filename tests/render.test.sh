@@ -39,12 +39,13 @@ check "FOSS_LOGOUT.portal" page_contains 'portal: "https://example.test"'
 check "FOSS_LOGOUT.oauthProxy" page_contains 'oauthProxy: "https://auth.example.test/oauth2/sign_out"'
 check "FOSS_LOGOUT.cognitoLogout" page_contains 'cognitoLogout: "https://idp.example.test/logout"'
 check "FOSS_LOGOUT.cognitoClientId" page_contains 'cognitoClientId: "ci-client"'
-for app in chatwoot mautic erpnext zulip; do
+for app in chatwoot mautic erpnext hrms zulip; do
     check "no ${app} tile without its host" not_page_contains "class=\"app-card card-${app}\""
 done
 check "no Chatwoot pill without CHATWOOT_HOST" not_page_contains '</span>Chatwoot</span>'
 check "no Mautic pill without MAUTIC_HOST" not_page_contains '</span>Mautic</span>'
 check "no ERPNext pill without ERPNEXT_HOST" not_page_contains '</span>ERPNext</span>'
+check "no Frappe HR pill without HRMS_HOST" not_page_contains '</span>Frappe HR</span>'
 check "no Zulip pill without ZULIP_HOST" not_page_contains '</span>Zulip</span>'
 
 page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-chatwoot.env")
@@ -76,9 +77,22 @@ check "ERPNext card links to the desk on ERPNEXT_HOST" page_contains 'href="http
 check "ERPNext pill renders with ERPNEXT_HOST" page_contains '</span>ERPNext</span>'
 check "no Chatwoot tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-chatwoot"'
 check "no Mautic tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-mautic"'
+check "no Frappe HR tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-hrms"'
 check "no app markers leak into the page with ERPNEXT_HOST" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with ERPNEXT_HOST" not_page_contains '<!-- /app:'
 check "heading counts 6 apps with ERPNEXT_HOST" page_contains '>6 apps<'
+
+page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-hrms.env")
+check "no {{...}} placeholders remain with HRMS_HOST" no_placeholders_left
+check "exactly 6 app cards render with HRMS_HOST" app_card_count_is 6
+check "Frappe HR card links to the HR app on HRMS_HOST" page_contains 'href="https://hrms.example.test/hrms"'
+check "Frappe HR card is labelled HR / People" page_contains '<div class="card-category">HR / People</div>'
+check "Frappe HR pill renders with HRMS_HOST" page_contains '</span>Frappe HR</span>'
+check "no ERPNext tile with only HRMS_HOST" not_page_contains 'class="app-card card-erpnext"'
+check "no ERPNext pill with only HRMS_HOST" not_page_contains '</span>ERPNext</span>'
+check "no app markers leak into the page with HRMS_HOST" not_page_contains '<!-- app:'
+check "no closing app markers leak into the page with HRMS_HOST" not_page_contains '<!-- /app:'
+check "heading counts 6 apps with HRMS_HOST" page_contains '>6 apps<'
 
 page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-zulip.env")
 check "no {{...}} placeholders remain with ZULIP_HOST" no_placeholders_left
@@ -93,15 +107,16 @@ check "heading counts 6 apps with ZULIP_HOST" page_contains '>6 apps<'
 
 page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-all.env")
 check "no {{...}} placeholders remain with all hosts" no_placeholders_left
-check "exactly 9 app cards render with all hosts" app_card_count_is 9
+check "exactly 10 app cards render with all hosts" app_card_count_is 10
 check "Chatwoot card links to CHATWOOT_HOST with all hosts" page_contains 'href="https://chatwoot.example.test"'
 check "Mautic card links to MAUTIC_HOST with all hosts" page_contains 'href="https://mautic.example.test/s/dashboard"'
 check "ERPNext card links to ERPNEXT_HOST with all hosts" page_contains 'href="https://erp.example.test/app"'
+check "Frappe HR card links to HRMS_HOST with all hosts" page_contains 'href="https://hrms.example.test/hrms"'
 check "Zulip card links to ZULIP_HOST with all hosts" page_contains 'href="https://zulip.example.test"'
-check "optional cards follow Zammad as Chatwoot, Mautic, ERPNext, Zulip" cards_in_order card-zammad card-chatwoot card-mautic card-erpnext card-zulip
+check "optional cards follow Zammad as Chatwoot, Mautic, ERPNext, Frappe HR, Zulip" cards_in_order card-zammad card-chatwoot card-mautic card-erpnext card-hrms card-zulip
 check "no app markers leak into the page with all hosts" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with all hosts" not_page_contains '<!-- /app:'
-check "heading counts 9 apps with all hosts" page_contains '>9 apps<'
+check "heading counts 10 apps with all hosts" page_contains '>10 apps<'
 
 startup_fails_naming() {
     local variable=$1
@@ -127,6 +142,8 @@ check "startup fails when MAUTIC_HOST carries a quote" \
     startup_fails_saying "MAUTIC_HOST must be a bare hostname" -e 'MAUTIC_HOST=m.example.test" onmouseover="x'
 check "startup fails when ERPNEXT_HOST carries a path" \
     startup_fails_saying "ERPNEXT_HOST must be a bare hostname" -e ERPNEXT_HOST=erp.example.test/app
+check "startup fails when HRMS_HOST carries a path" \
+    startup_fails_saying "HRMS_HOST must be a bare hostname" -e HRMS_HOST=hrms.example.test/hrms
 check "startup fails when ZULIP_HOST carries a scheme" \
     startup_fails_saying "ZULIP_HOST must be a bare hostname" -e ZULIP_HOST=https://zulip.example.test
 check "startup fails when PLATFORM_DOMAIN is unset" \

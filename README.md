@@ -31,6 +31,7 @@ Kubernetes alike.
 | `CHATWOOT_HOST` | `{{CHATWOOT_HOST}}` | no | `chatwoot.moneta.askii.ai` |
 | `MAUTIC_HOST` | `{{MAUTIC_HOST}}` | no | `mautic.moneta.askii.ai` |
 | `ERPNEXT_HOST` | `{{ERPNEXT_HOST}}` | no | `erp.moneta.askii.ai` |
+| `HRMS_HOST` | `{{HRMS_HOST}}` | no | `hrms.moneta.askii.ai` |
 | `ZULIP_HOST` | `{{ZULIP_HOST}}` | no | `zulip.moneta.askii.ai` |
 
 - The container exits at startup if a required variable is unset or empty.
@@ -38,11 +39,14 @@ Kubernetes alike.
 - `SMB_NAME` and `SUBDOMAIN_PREFIX` are accepted because the existing compose
   and Kubernetes setups pass them, but the current page has neither placeholder,
   so they have no effect.
-- `CHATWOOT_HOST`, `MAUTIC_HOST`, `ERPNEXT_HOST` and `ZULIP_HOST` are optional
-  because Chatwoot, Mautic, ERPNext and Zulip are opt-in: empty or unset drops
-  that app's tile and pill (everything between its `<!-- app:chatwoot -->`,
-  `<!-- app:mautic -->`, `<!-- app:erpnext -->` or `<!-- app:zulip -->` markers). Each must be a bare hostname, or the container
-  exits at startup.
+- `CHATWOOT_HOST`, `MAUTIC_HOST`, `ERPNEXT_HOST`, `HRMS_HOST` and `ZULIP_HOST`
+  are optional because Chatwoot, Mautic, ERPNext, Frappe HR and Zulip are
+  opt-in: empty or unset drops that app's tile and pill (everything between its
+  `<!-- app:chatwoot -->`, `<!-- app:mautic -->`, `<!-- app:erpnext -->`,
+  `<!-- app:hrms -->` or `<!-- app:zulip -->` markers). Each must be a bare
+  hostname, or the container exits at startup.
+- The Frappe HR tile links to `/hrms` on `HRMS_HOST`, the HR app's own UI,
+  which is served on its own host rather than on `ERPNEXT_HOST`.
 - Values must be single-line. They are inserted literally, including `&`, `|`
   and `\`, and trailing newlines are stripped.
 
@@ -83,7 +87,7 @@ The container listens on port `80`.
 
 - **Render template:** the image's own render script must leave no placeholders,
   link all five app cards (one more for each of `CHATWOOT_HOST`, `MAUTIC_HOST`,
-  `ERPNEXT_HOST` and `ZULIP_HOST`, nine with all four) and fill `FOSS_LOGOUT`, and startup
+  `ERPNEXT_HOST`, `HRMS_HOST` and `ZULIP_HOST`, ten with all five) and fill `FOSS_LOGOUT`, and startup
   must fail when `PLATFORM_DOMAIN` or `PLATFORM_PROTOCOL` is unset or empty, or
   an optional host is not a bare hostname.
 - **Container smoke:** the image starts and serves the rendered page on `/`.
