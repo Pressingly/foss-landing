@@ -80,6 +80,7 @@ check "ERPNext pill renders with ERPNEXT_HOST" page_contains '</span>ERPNext</sp
 check "no Chatwoot tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-chatwoot"'
 check "no Mautic tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-mautic"'
 check "no Frappe HR tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-hrms"'
+check "no Frappe HR pill with only ERPNEXT_HOST" not_page_contains '</span>Frappe HR</span>'
 check "no app markers leak into the page with ERPNEXT_HOST" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with ERPNEXT_HOST" not_page_contains '<!-- /app:'
 check "heading counts 6 apps with ERPNEXT_HOST" page_contains '>6 apps<'
