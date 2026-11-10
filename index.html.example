@@ -256,6 +256,7 @@
   .card-mautic    { --card-stripe: #4e5e9e; }
   .card-erpnext   { --card-stripe: #0089ff; }
   .card-hrms      { --card-stripe: #06b58b; }
+  .card-crm-frappe { --card-stripe: #ef0bf5; }
   .card-zulip     { --card-stripe: #6492fe; }
 
   .card-icon-wrap {
@@ -277,6 +278,7 @@
   .card-mautic    .card-icon-wrap { background: rgba(78,94,158,0.1);  }
   .card-erpnext   .card-icon-wrap { background: rgba(0,137,255,0.1);  }
   .card-hrms      .card-icon-wrap { background: rgba(6,181,139,0.1);  }
+  .card-crm-frappe .card-icon-wrap { background: rgba(239,11,245,0.1); }
   .card-zulip     .card-icon-wrap { background: rgba(100,146,254,0.1); }
 
   .card-category {
@@ -293,6 +295,7 @@
   .card-mautic    .card-category { color: #3d4a80; }
   .card-erpnext   .card-category { color: #006fcc; }
   .card-hrms      .card-category { color: #04805f; }
+  .card-crm-frappe .card-category { color: #b008b4; }
   .card-zulip     .card-category { color: #4a6fd4; }
 
   .card-name {
@@ -780,6 +783,10 @@
       <span class="app-pill"><span class="app-pill-dot"></span>Frappe HR</span>
       <!-- /app:hrms -->
 
+      <!-- app:crm-frappe -->
+      <span class="app-pill"><span class="app-pill-dot"></span>Frappe CRM</span>
+      <!-- /app:crm-frappe -->
+
       <!-- app:zulip -->
       <span class="app-pill"><span class="app-pill-dot"></span>Zulip</span>
       <!-- /app:zulip -->
@@ -948,6 +955,21 @@
       </div>
     </a>
     <!-- /app:hrms -->
+
+    <!-- app:crm-frappe -->
+    <a class="app-card card-crm-frappe" href="{{PROTOCOL}}://{{FRAPPE_CRM_HOST}}/crm" target="_blank" rel="noopener noreferrer">
+      <div class="card-icon-wrap"><svg viewBox="0 0 300 300" aria-hidden="true"><path fill="#EF0BF5" d="M214.286 0H85.7143C38.3756 0 0 38.3756 0 85.7143V214.286C0 261.624 38.3756 300 85.7143 300H214.286C261.624 300 300 261.624 300 214.286V85.7143C300 38.3756 261.624 0 214.286 0Z"/><path fill="white" d="M64.2141 90.301V111.862H214.339V140.214L160.187 193.146V208.993L139.705 208.885V193.146L85.6605 140.214H64.2141V149.269L118.259 202.202V230.23L181.634 230.769V202.202L235.786 149.269V90.301H64.2141Z"/></svg></div>
+      <div class="card-category">Sales CRM</div>
+      <div class="card-name">Frappe CRM</div>
+      <div class="card-desc">Leads, deals and follow-ups in one pipeline, on your ERPNext data</div>
+      <div class="card-link">
+        Open
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </a>
+    <!-- /app:crm-frappe -->
 
     <!-- app:zulip -->
     <a class="app-card card-zulip" href="{{PROTOCOL}}://{{ZULIP_HOST}}" target="_blank" rel="noopener noreferrer">
