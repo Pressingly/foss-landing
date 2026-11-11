@@ -124,7 +124,7 @@ page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-raven.env")
 check "no {{...}} placeholders remain with RAVEN_HOST" no_placeholders_left
 check "exactly 6 app cards render with RAVEN_HOST" app_card_count_is 6
 check "Raven card links to /raven on RAVEN_HOST" page_contains 'href="https://chat-raven.example.test/raven"'
-check "Raven card is labelled Team Messaging" page_contains '<div class="card-category">Team Messaging</div>'
+check "Raven card is labelled ERP Chat" page_contains '<div class="card-category">ERP Chat</div>'
 check "Raven pill renders with RAVEN_HOST" page_contains '</span>Raven</span>'
 check "no ERPNext tile with only RAVEN_HOST" not_page_contains 'class="app-card card-erpnext"'
 check "no Frappe CRM tile with only RAVEN_HOST" not_page_contains 'class="app-card card-crm-frappe"'

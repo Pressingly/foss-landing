@@ -34,7 +34,7 @@ Kubernetes alike.
 | `HRMS_HOST` | `{{HRMS_HOST}}` | no | `hrms.moneta.askii.ai` |
 | `FRAPPE_CRM_HOST` | `{{FRAPPE_CRM_HOST}}` | no | `crm-frappe.moneta.askii.ai` |
 | `RAVEN_HOST` | `{{RAVEN_HOST}}` | no | `chat-raven.moneta.askii.ai` |
-| `ZULIP_HOST` | `{{ZULIP_HOST}}` | no | `zulip.moneta.askii.ai` |
+| `ZULIP_HOST` | `{{ZULIP_HOST}}` | no | `chat-zulip.moneta.askii.ai` |
 
 - The container exits at startup if a required variable is unset or empty.
 - Optional variables render as an empty string when unset.
