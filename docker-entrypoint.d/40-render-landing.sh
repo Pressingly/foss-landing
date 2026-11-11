@@ -30,10 +30,11 @@ require_bare_host CHATWOOT_HOST "${CHATWOOT_HOST:-}"
 require_bare_host MAUTIC_HOST "${MAUTIC_HOST:-}"
 require_bare_host ERPNEXT_HOST "${ERPNEXT_HOST:-}"
 require_bare_host HRMS_HOST "${HRMS_HOST:-}"
+require_bare_host FRAPPE_CRM_HOST "${FRAPPE_CRM_HOST:-}"
 require_bare_host ZULIP_HOST "${ZULIP_HOST:-}"
 
 app_count=5
-for optional_host in "${CHATWOOT_HOST:-}" "${MAUTIC_HOST:-}" "${ERPNEXT_HOST:-}" "${HRMS_HOST:-}" "${ZULIP_HOST:-}"; do
+for optional_host in "${CHATWOOT_HOST:-}" "${MAUTIC_HOST:-}" "${ERPNEXT_HOST:-}" "${HRMS_HOST:-}" "${FRAPPE_CRM_HOST:-}" "${ZULIP_HOST:-}"; do
     if [ -n "$optional_host" ]; then app_count=$((app_count + 1)); fi
 done
 
@@ -42,6 +43,7 @@ sed \
     -e "$(optional_app_filter mautic "${MAUTIC_HOST:-}")" \
     -e "$(optional_app_filter erpnext "${ERPNEXT_HOST:-}")" \
     -e "$(optional_app_filter hrms "${HRMS_HOST:-}")" \
+    -e "$(optional_app_filter crm-frappe "${FRAPPE_CRM_HOST:-}")" \
     -e "$(optional_app_filter zulip "${ZULIP_HOST:-}")" \
     -e "s|{{PROTOCOL}}|$(escape_for_sed "$PLATFORM_PROTOCOL")|g" \
     -e "s|{{DOMAIN}}|$(escape_for_sed "$PLATFORM_DOMAIN")|g" \
@@ -53,6 +55,7 @@ sed \
     -e "s|{{MAUTIC_HOST}}|$(escape_for_sed "${MAUTIC_HOST:-}")|g" \
     -e "s|{{ERPNEXT_HOST}}|$(escape_for_sed "${ERPNEXT_HOST:-}")|g" \
     -e "s|{{HRMS_HOST}}|$(escape_for_sed "${HRMS_HOST:-}")|g" \
+    -e "s|{{FRAPPE_CRM_HOST}}|$(escape_for_sed "${FRAPPE_CRM_HOST:-}")|g" \
     -e "s|{{ZULIP_HOST}}|$(escape_for_sed "${ZULIP_HOST:-}")|g" \
     -e "s|{{APP_COUNT}}|$app_count|g" \
     "$template" > "$html_dir/index.html.tmp"

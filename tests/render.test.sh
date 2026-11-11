@@ -25,7 +25,7 @@ no_placeholders_left() { ! grep -q '{{' <<<"$page"; }
 app_card_count_is() { [[ $(grep -c 'class="app-card ' <<<"$page") -eq $1 ]]; }
 cards_in_order() {
     local order
-    order=$(grep -o 'class="app-card card-[a-z]*"' <<<"$page" | sed 's/.*card-\([a-z]*\)"/card-\1/' | tr '\n' ' ')
+    order=$(grep -o 'class="app-card card-[a-z-]*"' <<<"$page" | sed 's/.*card-\([a-z-]*\)"/card-\1/' | tr '\n' ' ')
     [[ "$order" == *"$*"* ]]
 }
 
@@ -39,13 +39,14 @@ check "FOSS_LOGOUT.portal" page_contains 'portal: "https://example.test"'
 check "FOSS_LOGOUT.oauthProxy" page_contains 'oauthProxy: "https://auth.example.test/oauth2/sign_out"'
 check "FOSS_LOGOUT.cognitoLogout" page_contains 'cognitoLogout: "https://idp.example.test/logout"'
 check "FOSS_LOGOUT.cognitoClientId" page_contains 'cognitoClientId: "ci-client"'
-for app in chatwoot mautic erpnext hrms zulip; do
+for app in chatwoot mautic erpnext hrms crm-frappe zulip; do
     check "no ${app} tile without its host" not_page_contains "class=\"app-card card-${app}\""
 done
 check "no Chatwoot pill without CHATWOOT_HOST" not_page_contains '</span>Chatwoot</span>'
 check "no Mautic pill without MAUTIC_HOST" not_page_contains '</span>Mautic</span>'
 check "no ERPNext pill without ERPNEXT_HOST" not_page_contains '</span>ERPNext</span>'
 check "no Frappe HR pill without HRMS_HOST" not_page_contains '</span>Frappe HR</span>'
+check "no Frappe CRM pill without FRAPPE_CRM_HOST" not_page_contains '</span>Frappe CRM</span>'
 check "no Zulip pill without ZULIP_HOST" not_page_contains '</span>Zulip</span>'
 
 page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-chatwoot.env")
@@ -56,6 +57,7 @@ check "Chatwoot pill renders with CHATWOOT_HOST" page_contains '</span>Chatwoot<
 check "no Mautic tile with only CHATWOOT_HOST" not_page_contains 'class="app-card card-mautic"'
 check "no ERPNext tile with only CHATWOOT_HOST" not_page_contains 'class="app-card card-erpnext"'
 check "no Frappe HR tile with only CHATWOOT_HOST" not_page_contains 'class="app-card card-hrms"'
+check "no Frappe CRM tile with only CHATWOOT_HOST" not_page_contains 'class="app-card card-crm-frappe"'
 check "no app markers leak into the page with CHATWOOT_HOST" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with CHATWOOT_HOST" not_page_contains '<!-- /app:'
 check "heading counts 6 apps with CHATWOOT_HOST" page_contains '>6 apps<'
@@ -68,6 +70,7 @@ check "Mautic pill renders with MAUTIC_HOST" page_contains '</span>Mautic</span>
 check "no Chatwoot tile with only MAUTIC_HOST" not_page_contains 'class="app-card card-chatwoot"'
 check "no ERPNext tile with only MAUTIC_HOST" not_page_contains 'class="app-card card-erpnext"'
 check "no Frappe HR tile with only MAUTIC_HOST" not_page_contains 'class="app-card card-hrms"'
+check "no Frappe CRM tile with only MAUTIC_HOST" not_page_contains 'class="app-card card-crm-frappe"'
 check "no app markers leak into the page with MAUTIC_HOST" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with MAUTIC_HOST" not_page_contains '<!-- /app:'
 check "heading counts 6 apps with MAUTIC_HOST" page_contains '>6 apps<'
@@ -80,6 +83,7 @@ check "ERPNext pill renders with ERPNEXT_HOST" page_contains '</span>ERPNext</sp
 check "no Chatwoot tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-chatwoot"'
 check "no Mautic tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-mautic"'
 check "no Frappe HR tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-hrms"'
+check "no Frappe CRM tile with only ERPNEXT_HOST" not_page_contains 'class="app-card card-crm-frappe"'
 check "no Frappe HR pill with only ERPNEXT_HOST" not_page_contains '</span>Frappe HR</span>'
 check "no app markers leak into the page with ERPNEXT_HOST" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with ERPNEXT_HOST" not_page_contains '<!-- /app:'
@@ -96,6 +100,19 @@ check "no ERPNext pill with only HRMS_HOST" not_page_contains '</span>ERPNext</s
 check "no app markers leak into the page with HRMS_HOST" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with HRMS_HOST" not_page_contains '<!-- /app:'
 check "heading counts 6 apps with HRMS_HOST" page_contains '>6 apps<'
+check "no Frappe CRM tile with only HRMS_HOST" not_page_contains 'class="app-card card-crm-frappe"'
+
+page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-crm-frappe.env")
+check "no {{...}} placeholders remain with FRAPPE_CRM_HOST" no_placeholders_left
+check "exactly 6 app cards render with FRAPPE_CRM_HOST" app_card_count_is 6
+check "Frappe CRM card links to /crm on FRAPPE_CRM_HOST" page_contains 'href="https://crm-frappe.example.test/crm"'
+check "Frappe CRM card is labelled Sales CRM" page_contains '<div class="card-category">Sales CRM</div>'
+check "Frappe CRM pill renders with FRAPPE_CRM_HOST" page_contains '</span>Frappe CRM</span>'
+check "no ERPNext tile with only FRAPPE_CRM_HOST" not_page_contains 'class="app-card card-erpnext"'
+check "no Frappe HR tile with only FRAPPE_CRM_HOST" not_page_contains 'class="app-card card-hrms"'
+check "no app markers leak into the page with FRAPPE_CRM_HOST" not_page_contains '<!-- app:'
+check "no closing app markers leak into the page with FRAPPE_CRM_HOST" not_page_contains '<!-- /app:'
+check "heading counts 6 apps with FRAPPE_CRM_HOST" page_contains '>6 apps<'
 
 page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-zulip.env")
 check "no {{...}} placeholders remain with ZULIP_HOST" no_placeholders_left
@@ -105,22 +122,24 @@ check "Zulip card is labelled Team Chat" page_contains '<div class="card-categor
 check "Zulip pill renders with ZULIP_HOST" page_contains '</span>Zulip</span>'
 check "no ERPNext tile with only ZULIP_HOST" not_page_contains 'class="app-card card-erpnext"'
 check "no Frappe HR tile with only ZULIP_HOST" not_page_contains 'class="app-card card-hrms"'
+check "no Frappe CRM tile with only ZULIP_HOST" not_page_contains 'class="app-card card-crm-frappe"'
 check "no app markers leak into the page with ZULIP_HOST" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with ZULIP_HOST" not_page_contains '<!-- /app:'
 check "heading counts 6 apps with ZULIP_HOST" page_contains '>6 apps<'
 
 page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-all.env")
 check "no {{...}} placeholders remain with all hosts" no_placeholders_left
-check "exactly 10 app cards render with all hosts" app_card_count_is 10
+check "exactly 11 app cards render with all hosts" app_card_count_is 11
 check "Chatwoot card links to CHATWOOT_HOST with all hosts" page_contains 'href="https://chatwoot.example.test"'
 check "Mautic card links to MAUTIC_HOST with all hosts" page_contains 'href="https://mautic.example.test/s/dashboard"'
 check "ERPNext card links to ERPNEXT_HOST with all hosts" page_contains 'href="https://erp.example.test/app"'
 check "Frappe HR card links to HRMS_HOST with all hosts" page_contains 'href="https://hrms.example.test/hrms"'
+check "Frappe CRM card links to FRAPPE_CRM_HOST with all hosts" page_contains 'href="https://crm-frappe.example.test/crm"'
 check "Zulip card links to ZULIP_HOST with all hosts" page_contains 'href="https://zulip.example.test"'
-check "optional cards follow Zammad as Chatwoot, Mautic, ERPNext, Frappe HR, Zulip" cards_in_order card-zammad card-chatwoot card-mautic card-erpnext card-hrms card-zulip
+check "optional cards follow Zammad as Chatwoot, Mautic, ERPNext, Frappe HR, Frappe CRM, Zulip" cards_in_order card-zammad card-chatwoot card-mautic card-erpnext card-hrms card-crm-frappe card-zulip
 check "no app markers leak into the page with all hosts" not_page_contains '<!-- app:'
 check "no closing app markers leak into the page with all hosts" not_page_contains '<!-- /app:'
-check "heading counts 10 apps with all hosts" page_contains '>10 apps<'
+check "heading counts 11 apps with all hosts" page_contains '>11 apps<'
 
 startup_fails_naming() {
     local variable=$1
@@ -148,6 +167,8 @@ check "startup fails when ERPNEXT_HOST carries a path" \
     startup_fails_saying "ERPNEXT_HOST must be a bare hostname" -e ERPNEXT_HOST=erp.example.test/app
 check "startup fails when HRMS_HOST carries a path" \
     startup_fails_saying "HRMS_HOST must be a bare hostname" -e HRMS_HOST=hrms.example.test/hrms
+check "startup fails when FRAPPE_CRM_HOST carries a path" \
+    startup_fails_saying "FRAPPE_CRM_HOST must be a bare hostname" -e FRAPPE_CRM_HOST=crm-frappe.example.test/crm
 check "startup fails when ZULIP_HOST carries a scheme" \
     startup_fails_saying "ZULIP_HOST must be a bare hostname" -e ZULIP_HOST=https://zulip.example.test
 check "startup fails when PLATFORM_DOMAIN is unset" \
