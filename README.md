@@ -33,6 +33,7 @@ Kubernetes alike.
 | `ERPNEXT_HOST` | `{{ERPNEXT_HOST}}` | no | `erp.moneta.askii.ai` |
 | `HRMS_HOST` | `{{HRMS_HOST}}` | no | `hrms.moneta.askii.ai` |
 | `FRAPPE_CRM_HOST` | `{{FRAPPE_CRM_HOST}}` | no | `crm-frappe.moneta.askii.ai` |
+| `RAVEN_HOST` | `{{RAVEN_HOST}}` | no | `chat-raven.moneta.askii.ai` |
 | `ZULIP_HOST` | `{{ZULIP_HOST}}` | no | `zulip.moneta.askii.ai` |
 
 - The container exits at startup if a required variable is unset or empty.
@@ -41,15 +42,17 @@ Kubernetes alike.
   and Kubernetes setups pass them, but the current page has neither placeholder,
   so they have no effect.
 - `CHATWOOT_HOST`, `MAUTIC_HOST`, `ERPNEXT_HOST`, `HRMS_HOST`,
-  `FRAPPE_CRM_HOST` and `ZULIP_HOST` are optional because Chatwoot, Mautic,
-  ERPNext, Frappe HR, Frappe CRM and Zulip are opt-in: empty or unset drops that
-  app's tile and pill (everything between its `<!-- app:chatwoot -->`,
-  `<!-- app:mautic -->`, `<!-- app:erpnext -->`, `<!-- app:hrms -->`,
-  `<!-- app:crm-frappe -->` or `<!-- app:zulip -->` markers). Each must be a
+  `FRAPPE_CRM_HOST`, `RAVEN_HOST` and `ZULIP_HOST` are optional because
+  Chatwoot, Mautic, ERPNext, Frappe HR, Frappe CRM, Raven and Zulip are opt-in:
+  empty or unset drops that app's tile and pill (everything between its
+  `<!-- app:chatwoot -->`, `<!-- app:mautic -->`, `<!-- app:erpnext -->`,
+  `<!-- app:hrms -->`, `<!-- app:crm-frappe -->`, `<!-- app:raven -->` or
+  `<!-- app:zulip -->` markers). Each must be a
   bare hostname, or the container exits at startup.
 - The Frappe HR tile links to `/hrms` on `HRMS_HOST`, the HR app's own UI,
   which is served on its own host rather than on `ERPNEXT_HOST`. The Frappe CRM
-  tile does the same with `/crm` on `FRAPPE_CRM_HOST`.
+  tile does the same with `/crm` on `FRAPPE_CRM_HOST`, and the Raven tile with
+  `/raven` on `RAVEN_HOST`.
 - Values must be single-line. They are inserted literally, including `&`, `|`
   and `\`, and trailing newlines are stripped.
 
@@ -90,7 +93,7 @@ The container listens on port `80`.
 
 - **Render template:** the image's own render script must leave no placeholders,
   link all five app cards (one more for each of `CHATWOOT_HOST`, `MAUTIC_HOST`,
-  `ERPNEXT_HOST`, `HRMS_HOST`, `FRAPPE_CRM_HOST` and `ZULIP_HOST`, eleven with all six) and fill `FOSS_LOGOUT`, and startup
+  `ERPNEXT_HOST`, `HRMS_HOST`, `FRAPPE_CRM_HOST`, `RAVEN_HOST` and `ZULIP_HOST`, twelve with all seven) and fill `FOSS_LOGOUT`, and startup
   must fail when `PLATFORM_DOMAIN` or `PLATFORM_PROTOCOL` is unset or empty, or
   an optional host is not a bare hostname.
 - **Container smoke:** the image starts and serves the rendered page on `/`.
