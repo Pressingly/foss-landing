@@ -59,9 +59,13 @@ Kubernetes alike.
   are the core apps' hosts. Empty or unset keeps the default shown above, so a
   deployment that does not set them renders exactly as before. Set one to a bare
   hostname to move the tile (for example `TWENTY_HOST=crm.<domain>` under
-  category hosts), or to `none` (exact, lowercase) to drop that app's tile and pill.
+  category hosts), or to `none` (any case) to drop that app's tile and pill.
 - `none` drops the tile and pill of an opt-in app too. Empty is never "hide" for
   the core apps because compose passes an unset `${VAR:-}` through as empty.
+- In foss-server-bundle the opt-in `*_HOST` names also configure the apps
+  themselves (Traefik `Host()` rules, the ERPNext site name), so leave an opt-in
+  host empty there to hide it; use `none` only where the landing env is set on
+  its own (GKE manifests, askii Ansible).
 - The Frappe HR tile links to `/hrms` on `HRMS_HOST`, the HR app's own UI,
   which is served on its own host rather than on `ERPNEXT_HOST`. The Frappe CRM
   tile does the same with `/crm` on `FRAPPE_CRM_HOST`, and the Raven tile with

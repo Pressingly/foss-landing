@@ -30,7 +30,7 @@ optional_app_filter() {
 resolve_host() {
     require_bare_host "$1" "$2"
     case "$2" in
-        none) printf '' ;;
+        [Nn][Oo][Nn][Ee]) printf '' ;;
         '') printf '%s' "$3" ;;
         *) printf '%s' "$2" ;;
     esac
