@@ -162,6 +162,36 @@ check "no app markers leak into the page with all hosts" not_page_contains '<!--
 check "no closing app markers leak into the page with all hosts" not_page_contains '<!-- /app:'
 check "heading counts 12 apps with all hosts" page_contains '>12 apps<'
 
+page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-core-hosts.env")
+check "no {{...}} placeholders remain with core hosts set" no_placeholders_left
+check "exactly 3 app cards render with Penpot and Zammad hidden" app_card_count_is 3
+check "Outline card links to OUTLINE_HOST" page_contains 'href="https://wiki.example.test"'
+check "Plane card links to PLANE_HOST" page_contains 'href="https://projects.example.test"'
+check "Twenty card links to TWENTY_HOST" page_contains 'href="https://crm.example.test"'
+check "no Penpot tile with PENPOT_HOST=none" not_page_contains 'class="app-card card-penpot"'
+check "no Zammad tile with ZAMMAD_HOST=none" not_page_contains 'class="app-card card-zammad"'
+check "no Penpot pill with PENPOT_HOST=none" not_page_contains '</span>Penpot</span>'
+check "no Zammad pill with ZAMMAD_HOST=none" not_page_contains '</span>Zammad</span>'
+for host in docs pm design twenty support; do
+    check "no default $host host with core hosts set" not_page_contains "https://$host.example.test"
+done
+check "no app markers leak into the page with core hosts set" not_page_contains '<!-- app:'
+check "no closing app markers leak into the page with core hosts set" not_page_contains '<!-- /app:'
+check "heading counts 3 apps with Penpot and Zammad hidden" page_contains '>3 apps<'
+
+page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-core-hosts-empty.env")
+check "exactly 5 app cards render with empty core hosts" app_card_count_is 5
+for app in docs pm design twenty support; do
+    check "empty core host falls back to https://$app.example.test" page_contains "href=\"https://$app.example.test\""
+done
+check "heading counts 5 apps with empty core hosts" page_contains '>5 apps<'
+
+page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-chatwoot-none.env")
+check "no Chatwoot tile with CHATWOOT_HOST=none" not_page_contains 'class="app-card card-chatwoot"'
+check "no Chatwoot pill with CHATWOOT_HOST=none" not_page_contains '</span>Chatwoot</span>'
+check "no link to a host named none" not_page_contains 'https://none'
+check "heading counts 5 apps with CHATWOOT_HOST=none" page_contains '>5 apps<'
+
 startup_fails_naming() {
     local variable=$1
     shift
@@ -194,6 +224,16 @@ check "startup fails when RAVEN_HOST carries a path" \
     startup_fails_saying "RAVEN_HOST must be a bare hostname" -e RAVEN_HOST=chat-raven.example.test/raven
 check "startup fails when ZULIP_HOST carries a scheme" \
     startup_fails_saying "ZULIP_HOST must be a bare hostname" -e ZULIP_HOST=https://zulip.example.test
+check "startup fails when TWENTY_HOST carries a scheme" \
+    startup_fails_saying "TWENTY_HOST must be a bare hostname" -e TWENTY_HOST=https://crm.example.test
+check "startup fails when PENPOT_HOST carries a path" \
+    startup_fails_saying "PENPOT_HOST must be a bare hostname" -e PENPOT_HOST=design.example.test/x
+check "startup fails when ZAMMAD_HOST is only whitespace" \
+    startup_fails_saying "ZAMMAD_HOST must be a bare hostname" -e "ZAMMAD_HOST= "
+check "startup fails when OUTLINE_HOST carries a quote" \
+    startup_fails_saying "OUTLINE_HOST must be a bare hostname" -e 'OUTLINE_HOST=d.example.test" onmouseover="x'
+check "startup fails when PLANE_HOST carries a scheme" \
+    startup_fails_saying "PLANE_HOST must be a bare hostname" -e PLANE_HOST=https://pm.example.test
 check "startup fails when PLATFORM_DOMAIN is unset" \
     startup_fails_naming PLATFORM_DOMAIN -e PLATFORM_PROTOCOL=https
 check "startup fails when PLATFORM_DOMAIN is empty" \
