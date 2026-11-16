@@ -28,6 +28,11 @@ Kubernetes alike.
 | `OIDC_CLIENT_ID` | `{{OIDC_CLIENT_ID}}` | for sign-out | Cognito app client id |
 | `SMB_NAME` | `{{SMB_NAME}}` | no | `foss` |
 | `SUBDOMAIN_PREFIX` | `{{SUBDOMAIN_PREFIX}}` | no | empty |
+| `OUTLINE_HOST` | `{{OUTLINE_HOST}}` | no | `docs.<PLATFORM_DOMAIN>` (default) |
+| `PLANE_HOST` | `{{PLANE_HOST}}` | no | `pm.<PLATFORM_DOMAIN>` (default) |
+| `PENPOT_HOST` | `{{PENPOT_HOST}}` | no | `design.<PLATFORM_DOMAIN>` (default) |
+| `TWENTY_HOST` | `{{TWENTY_HOST}}` | no | `twenty.<PLATFORM_DOMAIN>` (default) |
+| `ZAMMAD_HOST` | `{{ZAMMAD_HOST}}` | no | `support.<PLATFORM_DOMAIN>` (default) |
 | `CHATWOOT_HOST` | `{{CHATWOOT_HOST}}` | no | `chatwoot.moneta.askii.ai` |
 | `MAUTIC_HOST` | `{{MAUTIC_HOST}}` | no | `mautic.moneta.askii.ai` |
 | `ERPNEXT_HOST` | `{{ERPNEXT_HOST}}` | no | `erp.moneta.askii.ai` |
@@ -49,6 +54,13 @@ Kubernetes alike.
   `<!-- app:hrms -->`, `<!-- app:crm-frappe -->`, `<!-- app:raven -->` or
   `<!-- app:zulip -->` markers). Each must be a
   bare hostname, or the container exits at startup.
+- `OUTLINE_HOST`, `PLANE_HOST`, `PENPOT_HOST`, `TWENTY_HOST` and `ZAMMAD_HOST`
+  are the core apps' hosts. Empty or unset keeps the default shown above, so a
+  deployment that does not set them renders exactly as before. Set one to a bare
+  hostname to move the tile (for example `TWENTY_HOST=crm.<domain>` under
+  category hosts), or to `none` to drop that app's tile and pill.
+- `none` drops the tile and pill of an opt-in app too. Empty is never "hide" for
+  the core apps because compose passes an unset `${VAR:-}` through as empty.
 - The Frappe HR tile links to `/hrms` on `HRMS_HOST`, the HR app's own UI,
   which is served on its own host rather than on `ERPNEXT_HOST`. The Frappe CRM
   tile does the same with `/crm` on `FRAPPE_CRM_HOST`, and the Raven tile with
@@ -92,10 +104,11 @@ The container listens on port `80`.
 `foss-main`:
 
 - **Render template:** the image's own render script must leave no placeholders,
-  link all five app cards (one more for each of `CHATWOOT_HOST`, `MAUTIC_HOST`,
+  link the five core app cards at their default or configured hosts (one fewer for
+  each set to `none`, one more for each of `CHATWOOT_HOST`, `MAUTIC_HOST`,
   `ERPNEXT_HOST`, `HRMS_HOST`, `FRAPPE_CRM_HOST`, `RAVEN_HOST` and `ZULIP_HOST`, twelve with all seven) and fill `FOSS_LOGOUT`, and startup
   must fail when `PLATFORM_DOMAIN` or `PLATFORM_PROTOCOL` is unset or empty, or
-  an optional host is not a bare hostname.
+  an app host is not a bare hostname.
 - **Container smoke:** the image starts and serves the rendered page on `/`.
 - **Auth state:** Playwright drives the rendered page against a local server that
   stands in for oauth2-proxy, the IdP and `/api/me`, covering login, logout and
