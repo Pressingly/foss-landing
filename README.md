@@ -42,7 +42,8 @@ Kubernetes alike.
 | `ZULIP_HOST` | `{{ZULIP_HOST}}` | no | `chat-zulip.moneta.askii.ai` |
 
 - The container exits at startup if a required variable is unset or empty.
-- Optional variables render as an empty string when unset.
+- Unset optional variables render as an empty string, except the five core app
+  hosts, which fall back to their defaults.
 - `SMB_NAME` and `SUBDOMAIN_PREFIX` are accepted because the existing compose
   and Kubernetes setups pass them, but the current page has neither placeholder,
   so they have no effect.
@@ -58,7 +59,7 @@ Kubernetes alike.
   are the core apps' hosts. Empty or unset keeps the default shown above, so a
   deployment that does not set them renders exactly as before. Set one to a bare
   hostname to move the tile (for example `TWENTY_HOST=crm.<domain>` under
-  category hosts), or to `none` to drop that app's tile and pill.
+  category hosts), or to `none` (exact, lowercase) to drop that app's tile and pill.
 - `none` drops the tile and pill of an opt-in app too. Empty is never "hide" for
   the core apps because compose passes an unset `${VAR:-}` through as empty.
 - The Frappe HR tile links to `/hrms` on `HRMS_HOST`, the HR app's own UI,

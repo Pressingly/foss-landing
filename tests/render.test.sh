@@ -186,6 +186,12 @@ for app in docs pm design twenty support; do
 done
 check "heading counts 5 apps with empty core hosts" page_contains '>5 apps<'
 
+page=$("$(dirname "$0")/render-page.sh" "$image" "$fixtures/sample-chatwoot-none.env")
+check "no Chatwoot tile with CHATWOOT_HOST=none" not_page_contains 'class="app-card card-chatwoot"'
+check "no Chatwoot pill with CHATWOOT_HOST=none" not_page_contains '</span>Chatwoot</span>'
+check "no link to a host named none" not_page_contains 'https://none'
+check "heading counts 5 apps with CHATWOOT_HOST=none" page_contains '>5 apps<'
+
 startup_fails_naming() {
     local variable=$1
     shift
